@@ -176,7 +176,8 @@ class App(tk.Tk):
         self.log_file.flush()
         time.sleep(1)
         self.habilitar_botones()
-    
+        self.venta_POS()
+
     def select2(self):
         global entry
         entry = 2
@@ -189,7 +190,8 @@ class App(tk.Tk):
         self.log_file.flush()
         time.sleep(1)
         self.habilitar_botones()
-    
+        self.venta_POS()
+
     def select3(self):
         global entry
         entry = 3
@@ -202,7 +204,8 @@ class App(tk.Tk):
         self.log_file.flush()
         time.sleep(1)
         self.habilitar_botones()
-    
+        self.venta_POS()
+
     def select4(self):
         global entry
         entry = 4
@@ -215,7 +218,8 @@ class App(tk.Tk):
         self.log_file.flush()
         time.sleep(1)
         self.habilitar_botones()
-     
+        self.venta_POS()
+
     def toggle_fullscreen(self, event=None):
         self.attributes('-fullscreen', True)
 
@@ -491,7 +495,25 @@ class App(tk.Tk):
             self.log_file.flush()
             time.sleep(1)
        
-         
+    def venta_POS(self):
+        with open('valores.txt', 'r') as file:
+            for i, line in enumerate(file):
+                print(entry)
+                if i == (entry -1):
+                    print(i)
+                    self.precio, self.n_pulsos = line.strip().split()
+                    print(self.precio, self.n_pulsos)
+                    break
+        self.deshabilitar_botones()
+                                   
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        mlog = f"[{current_time}] Iniciando venta por {self.precio}\n"
+        self.log(mlog)
+        self.log_file.write(mlog)
+        self.log_file.flush() 
+        mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,1)
+        self.pos_serial.write(mensaje_venta)
+
     def conectar_serial(self):
         """Intenta conectar al puerto serial cuando esta disponible."""
         while True:
@@ -566,17 +588,17 @@ class App(tk.Tk):
                                         print(entry)
                                         if i == (entry -1):
                                             print(i)
-                                            precio, n_pulsos = line.strip().split()
-                                            print(precio, n_pulsos)
+                                            self.precio, self.n_pulsos = line.strip().split()
+                                            print(self.precio, self.n_pulsos)
                                             break
                                 self.deshabilitar_botones()
                                    
                                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                mlog = f"[{current_time}] Iniciando venta por {precio}\n"
+                                mlog = f"[{current_time}] Iniciando venta por {self.precio}\n"
                                 self.log(mlog)
                                 self.log_file.write(mlog)
                                 self.log_file.flush() 
-                                mensaje_venta = self.generar_mensaje_venta(precio, "1234", 0,0)
+                                mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,0)
                                 self.pos_serial.write(mensaje_venta)
                             else:
                                 self.log("[ERROR] No se recibio ACK tras el polling.")
@@ -585,7 +607,7 @@ class App(tk.Tk):
                             self.log(f"[{current_time}] Respuesta de venta recibida.")
                             self.log_file.write(f"[{current_time}] Respuesta de venta recibida.\n")
                             self.log_file.flush()
-                            self.interpretar_respuesta_0210(linea, n_pulsos)
+                            self.interpretar_respuesta_0210(linea, self.n_pulsos)
                             
                         elif "0510" in codigos:
                             self.log(f"[{current_time}] Respuesta de cierre recibida.")
