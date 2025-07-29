@@ -121,10 +121,10 @@ class App(tk.Tk):
         self.log_file.write(mlog)
         self.log_file.flush()
         factory = NativeFactory()
-        self.inCH1 = Button(2, bounce_time=0.2)
-        self.inCH2 = Button(3, bounce_time=0.2)
-        self.inCH3 = Button(4, bounce_time=0.2)
-        self.inCH4 = Button(17, bounce_time=0.2)
+        self.inCH1 = Button(2, bounce_time=0.05)
+        self.inCH2 = Button(3, bounce_time=0.05)
+        self.inCH3 = Button(4, bounce_time=0.05)
+        self.inCH4 = Button(17, bounce_time=0.05)
         
         self.outCH1 = LED(19, pin_factory=factory)
         self.outCH1.on()
@@ -155,15 +155,15 @@ class App(tk.Tk):
         
     def toggle_gpio(self, led):
         led.off()
-        time.sleep(0.5)
+        time.sleep(0.1)
         led.on() 
-        time.sleep(0.5)
+        time.sleep(0.1)
     
     def toggle_gpio2(self, led):
         led.on()
-        time.sleep(0.5)
+        time.sleep(0.1)
         led.off() 
-        time.sleep(0.5)    
+        time.sleep(0.1)    
     def select1(self):
         global entry
         entry = 1
@@ -177,7 +177,7 @@ class App(tk.Tk):
         time.sleep(1)
         self.habilitar_botones()
         self.venta_POS()
-
+    
     def select2(self):
         global entry
         entry = 2
@@ -191,7 +191,7 @@ class App(tk.Tk):
         time.sleep(1)
         self.habilitar_botones()
         self.venta_POS()
-
+    
     def select3(self):
         global entry
         entry = 3
@@ -205,7 +205,7 @@ class App(tk.Tk):
         time.sleep(1)
         self.habilitar_botones()
         self.venta_POS()
-
+    
     def select4(self):
         global entry
         entry = 4
@@ -219,7 +219,7 @@ class App(tk.Tk):
         time.sleep(1)
         self.habilitar_botones()
         self.venta_POS()
-
+     
     def toggle_fullscreen(self, event=None):
         self.attributes('-fullscreen', True)
 
@@ -313,7 +313,7 @@ class App(tk.Tk):
          send_button2 = tk.Button(self.test_frame, text="test pulso", font=font_large, width=pos_width, height=pos_height, command=self.test_pulso_acoplado)
          send_button2.grid(row=1, column=1, padx=5)
               
-         send_button3 = tk.Button(self.test_frame, text="CH1_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio(self.outCH1))
+         send_button3 = tk.Button(self.test_frame, text="CH1_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio2(self.outCH1))
          send_button3.grid(row=2, column=0, padx=5)
          
          send_button4 = tk.Button(self.test_frame, text="CH2_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio(self.outCH2))
@@ -486,7 +486,7 @@ class App(tk.Tk):
          
     def enviar_pulso_acoplado(self, n):
         for i in range(n):
-            self.toggle_gpio(self.pulseChannel)
+            self.toggle_gpio2(self.pulseChannel)
             print('mensaje enviado: pulso acoplado')
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             mlog = f"[{current_time}] Enviando: pulso acopladp\n"
@@ -513,7 +513,7 @@ class App(tk.Tk):
         self.log_file.flush() 
         mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,1)
         self.pos_serial.write(mensaje_venta)
-
+                     
     def conectar_serial(self):
         """Intenta conectar al puerto serial cuando esta disponible."""
         while True:
@@ -644,20 +644,20 @@ class App(tk.Tk):
             self.log_file.flush()
             self.enviar_ack()
             self.toggle_gpio(self.outs[entry - 1])
-            self.enviar_pulsos_acoplado(int(n))
+            self.enviar_pulso_acoplado(int(n))
         elif codigo_respuesta == "01":
             self.log(f"[{current_time}]Venta Rechazada.")
             self.log_file.write(f"[{current_time}]Venta Rechazada.\n")
             self.log_file.flush()
             self.enviar_ack()
-            self.serPulsos.close()
+            #self.serPulsos.close()
 
         else:
             self.log(f"[{current_time}] Error en la venta. Codigo: {codigo_respuesta}")
             self.log_file.write(f"[{current_time}] Error en la venta. Codigo: {codigo_respuesta}\n")
             self.log_file.flush()
             self.enviar_ack()
-            self.serPulsos.close()
+            #self.serPulsos.close()
         self.habilitar_botones()
 
     def generar_mensaje_venta(self, monto, numero_ticket, envia_voucher, envia_mensajes):
