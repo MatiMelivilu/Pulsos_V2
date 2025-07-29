@@ -563,6 +563,7 @@ class App(tk.Tk):
                 while True:
                     if self.pos_serial.in_waiting > 0:
                         raw_line = self.pos_serial.readline()
+                        print(raw_line)
                         if raw_line.strip() == b'\x06':
                             linea = "ACK recibido"
                             print("ACK recibido")
@@ -598,7 +599,7 @@ class App(tk.Tk):
                                 self.log(mlog)
                                 self.log_file.write(mlog)
                                 self.log_file.flush() 
-                                mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,0)
+                                mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,1)
                                 self.pos_serial.write(mensaje_venta)
                             else:
                                 self.log("[ERROR] No se recibio ACK tras el polling.")
