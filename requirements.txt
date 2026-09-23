@@ -1,0 +1,6 @@
+# Instalar dentro del entorno virtual de la Raspberry.
+# Esta versión mínima incorpora correcciones de detección GPIO en Raspberry Pi 5.
+gpiozero>=2.0.1.post3
+lgpio
+pyserial
+Pillow
