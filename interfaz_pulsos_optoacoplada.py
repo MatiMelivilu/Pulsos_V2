@@ -4,6 +4,7 @@ import serial
 import threading
 import socket
 import subprocess
+from wifi_touch import WifiWindow
 import os
 import signal
 import sys
@@ -12,15 +13,10 @@ import time
 import select
 from PIL import Image, ImageTk
 import re
-from gpiozero.pins.native import NativeFactory
-from gpiozero.pins.rpigpio import RPiGPIOFactory
 from gpiozero import Device, LED, Button
 
-# Numero serial unico de raspberry
-SERIAL_NUMBER = "100000007ccad951"
-
 #Configuracion de POS
-SERIAL_PORT = '/dev/POS1'
+SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 115200 
 
 #ruta conversor pulsos
@@ -71,7 +67,7 @@ class App(tk.Tk):
         self.imagen_conv2 = ImageTk.PhotoImage(self.resized_image2) 
         
         tk.Label(self.config_frame, text="Configuración de pago de pulsos", font=font_large).grid(row=0, column=0, columnspan=6, pady=10)
-        tk.Button(self.config_frame, image=self.imagen_conv2, command=self.configure_inputs, width=60, height=60).grid(row=0, column=5, columnspan=6, pady=10)
+        tk.Button(self.config_frame, image=self.imagen_conv2, command=self.open_wifi_settings, width=60, height=60).grid(row=0, column=5, columnspan=6, pady=10)
         tk.Label(self.config_frame, text="$Precio", font=font_large2).grid(row=1, column=0, columnspan=2, pady=10)
         tk.Label(self.config_frame, text="#Pulsos", font=font_large2).grid(row=1, column=3, columnspan=6, pady=10)
 
@@ -92,6 +88,7 @@ class App(tk.Tk):
         self.log_text.pack(expand=True, fill=tk.BOTH)
         
         self.virtual_keyboard = None
+        self.wifi_window = None
 
         # Configuración del canvas y el scrollbar
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
@@ -120,7 +117,8 @@ class App(tk.Tk):
         self.log(mlog)
         self.log_file.write(mlog)
         self.log_file.flush()
-        factory = NativeFactory()
+        # Entradas y salidas comparten el controlador configurado al arrancar.
+        factory = Device.pin_factory
         self.inCH1 = Button(2, bounce_time=0.05)
         self.inCH2 = Button(3, bounce_time=0.05)
         self.inCH3 = Button(4, bounce_time=0.05)
@@ -154,9 +152,9 @@ class App(tk.Tk):
         self.inCH4.when_pressed = lambda: self.select4()   
         
     def toggle_gpio(self, led):
-        led.off()
+        led.on()
         time.sleep(0.1)
-        led.on() 
+        led.off() 
         time.sleep(0.1)
     
     def toggle_gpio2(self, led):
@@ -174,7 +172,7 @@ class App(tk.Tk):
         self.log(mlog)
         self.log_file.write(mlog)
         self.log_file.flush()
-        time.sleep(1)
+        time.sleep(0.1)
         self.habilitar_botones()
         self.venta_POS()
     
@@ -188,7 +186,7 @@ class App(tk.Tk):
         self.log(mlog)
         self.log_file.write(mlog)
         self.log_file.flush()
-        time.sleep(1)
+        time.sleep(0.1)
         self.habilitar_botones()
         self.venta_POS()
     
@@ -202,7 +200,7 @@ class App(tk.Tk):
         self.log(mlog)
         self.log_file.write(mlog)
         self.log_file.flush()
-        time.sleep(1)
+        time.sleep(0.1)
         self.habilitar_botones()
         self.venta_POS()
     
@@ -216,7 +214,7 @@ class App(tk.Tk):
         self.log(mlog)
         self.log_file.write(mlog)
         self.log_file.flush()
-        time.sleep(1)
+        time.sleep(0.1)
         self.habilitar_botones()
         self.venta_POS()
      
@@ -362,12 +360,14 @@ class App(tk.Tk):
                 self.log(mlog)
                 self.log_file.write(mlog)
                 self.log_file.flush()
-                time.sleep(0.1)
       
-        
-    def configure_inputs(self):
-        ConfigureInputsWindow(self)
-        
+    def open_wifi_settings(self):
+        """Muestra las redes cercanas y permite conectarse desde la pantalla táctil."""
+        if self.wifi_window is not None and self.wifi_window.winfo_exists():
+            self.wifi_window.lift()
+            return
+        self.wifi_window = WifiWindow(self)
+
     def reload_app(self):
          # Fuente aumentada
         font_large = ("Helvetica", 18)
@@ -393,7 +393,7 @@ class App(tk.Tk):
         title_frame.grid(row=0, column=0, columnspan=6, pady=10)
 
         tk.Label(title_frame, text="Configuración de pago de pulsos", font=("Helvetica", 20)).pack(side="left")
-        tk.Button(self.config_frame, image=self.imagen_conv2, command=self.configure_inputs, width=60, height=60).grid(row=0, column=5, columnspan=6, pady=10)
+        tk.Button(self.config_frame, image=self.imagen_conv2, command=self.open_wifi_settings, width=60, height=60).grid(row=0, column=5, columnspan=6, pady=10)
         tk.Label(self.config_frame, text="$Precio", font=font_large).grid(row=1, column=0, columnspan=2, pady=10)
         tk.Label(self.config_frame, text="#Pulsos", font=font_large).grid(row=1, column=3, columnspan=6, pady=10)
         
@@ -460,29 +460,6 @@ class App(tk.Tk):
     def log(self, message):
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.see(tk.END)
-
-    def enviar_pulsos(self, n):
-        global ruta_pulsos
-        message = '30313233000A'
-        try:
-            for i in range(n):
-                self.serPulsos.write(bytes.fromhex(message))
-                print('mensaje enviado: ', message)
-                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                mlog = f"[{current_time}] Enviando: {message}\n"
-                self.log(mlog)
-                self.log_file.write(mlog)
-                self.log_file.flush()
-                time.sleep(1)
-            self.serPulsos.close()
-
-        except (serial.SerialException, FileNotFoundError) as e:
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            mlog = f"[{current_time}] ? No se pudieron enviar los pulsos: {e}\n"
-            self.log(mlog)
-            self.log_file.write(mlog)
-            self.log_file.flush()
-            self.serPulsos.close()
          
     def enviar_pulso_acoplado(self, n):
         for i in range(n):
@@ -493,7 +470,6 @@ class App(tk.Tk):
             self.log(mlog)
             self.log_file.write(mlog)
             self.log_file.flush()
-            time.sleep(1)
        
     def venta_POS(self):
         with open('valores.txt', 'r') as file:
@@ -621,7 +597,8 @@ class App(tk.Tk):
                             self.log_file.write(f"[{current_time}] POS:{linea}.\n")
                             self.log_file.flush()
                             self.enviar_ack()
-                            
+
+                        self.habilitar_botones()
                                                
             except (serial.SerialException, OSError) as e:
                 print(f"Desconectado. Error: {e}")
@@ -911,18 +888,18 @@ class VirtualKeyboard(tk.Toplevel):
             self.price_var.set(current_text + key)
             
 def handle_exit(signum, frame):
-    if node_process.poll() is None:
-        node_process.terminate()
     sys.exit()
 
-def get_serial():
+def configure_gpio_factory():
+    """Usa gpiochip mediante lgpio, sin recurrir al backend sysfs antiguo."""
     try:
-        with open("/proc/cpuinfo", "r") as f:
-            for line in f:
-                if line.startswith("Serial"):
-                    return line.split(":")[1].strip()
-    except:
-        return None
+        from gpiozero.pins.lgpio import LGPIOFactory
+    except ImportError as exc:
+        raise RuntimeError(
+            "Falta lgpio en el Python que ejecuta la aplicación. "
+            "Instálalo con: python -m pip install --upgrade gpiozero lgpio"
+        ) from exc
+    Device.pin_factory = LGPIOFactory()
 
 def dispositivo_conectado(ruta):
     return os.path.exists(ruta)
@@ -933,19 +910,6 @@ def toggle_gpio(led):
     led.on()
 
 if __name__ == "__main__":
-    # Validación serial
-    serial_num = get_serial()
-    
-    if serial_num is None:
-        print("Error en obtener datos")
-        sys.exit(1)
-            
-    if serial_num != SERIAL_NUMBER:
-        print("No compatible")
-        sys.exit(1)
-    
-    # Ruta al programa Node.js
-    #node_program = "./control_Pago_POS_v3.js"
     
     # Crear carpeta log si no existe
     if not os.path.exists("log"):
@@ -954,11 +918,6 @@ if __name__ == "__main__":
     # Generar nombre de archivo de log y dex
     log_filename = f"./log/log_{datetime.datetime.now().strftime('%Y%m%d')}.txt"
 
-    # Verificar si el archivo Node.js existe
-    #if not os.path.exists(node_program):
-    #    print("El programa Node.js no se encuentra en la ruta especificada.")
-    #    exit()
-
     # Asociar la señal SIGINT (Ctrl+C) al manejador de salida
     signal.signal(signal.SIGINT, handle_exit)
 
@@ -966,15 +925,11 @@ if __name__ == "__main__":
     #node_process = subprocess.Popen(["node", node_program])
     
     try:
+        configure_gpio_factory()
         with open(log_filename, "a") as log_file:
             print("iniciando")
             app = App(log_file)
             app.mainloop()
     finally:
-        # Detener el hilo de SerialHandler cuando la aplicacin se cierre
-        serial_handler.stop()
-        serial_thread.join()
-
-        # Si la interfaz se cierra, se termina el proceso de Node.js
-        #if node_process.poll() is None:
-        #    node_process.terminate()
+        if Device.pin_factory is not None:
+            Device.pin_factory.close()
