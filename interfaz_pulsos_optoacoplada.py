@@ -1,39 +1,37 @@
 import tkinter as tk
+import json
+from pathlib import Path
+import queue
+from getnet_payments import PaymentController
 from tkinter import messagebox
-import serial
-import threading
-import socket
-import subprocess
 from wifi_touch import WifiWindow
 import os
 import signal
 import sys
 import datetime
 import time
-import select
 from PIL import Image, ImageTk
-import re
 from gpiozero import Device, LED, Button
 
-#Configuracion de POS
+# Configuración del POS Getnet en modo integrado USB
 SERIAL_PORT = '/dev/ttyACM0'
-BAUD_RATE = 115200 
+BAUD_RATE = 115200
+SALE_TIMEOUT = 120
+PRINT_ON_POS = False
+PAYMENT_JOURNAL = Path(__file__).with_name('pagos_getnet.sqlite3')
 
-#ruta conversor pulsos
-ruta_pulsos   = '/dev/ttyUSB0'
-ruta_freePass = '/dev/mi_dispositivo_2'
 # Número de entradas (inicial)
 n_inputs = 4 
-entry = 1
-POS_CONNECT = 0
-POS_OPERATION = False
 class App(tk.Tk):
     def __init__(self, log_file):
         self.running = True
-        self.client_socket = None
+        self.ui_events = queue.Queue()
+        self.controller = None
         self.log_file = log_file
         super().__init__()
-        self.title("Pagos pulsos acoplados")
+        self.title("Pagos pulsos Getnet")
+        self.protocol("WM_DELETE_WINDOW", self.close_app)
+        self.pos_status = tk.StringVar(value="Conectando POS Getnet…")
 
 
         # Configuración para pantalla completa
@@ -102,21 +100,20 @@ class App(tk.Tk):
         self.load_values()
         
         self.GPIOconf()
-        self.habilitar_botones() 
-        
-        self.POS_thread = threading.Thread(target=self.POS_listener, daemon=True)
-        self.POS_thread.start()
-        
-        #self.socket_thread = threading.Thread(target=self.freePassRead, daemon=True)
-        #self.socket_thread.start()
+        self.controller = PaymentController(
+            SERIAL_PORT, BAUD_RATE, PAYMENT_JOURNAL, self.deliver_product,
+            on_selected=lambda channel: self.toggle_gpio(self.outs[channel - 1]),
+            events=self.ui_events, sale_timeout=SALE_TIMEOUT, print_on_pos=PRINT_ON_POS,
+        )
+        self.deshabilitar_botones()
+        self.controller.start()
+        self.after(50, self.process_events)
 
 #Configurion de los puertos GPIO        
     def GPIOconf(self):
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         mlog = f"[{current_time}] configurando GPIO\n"
         self.log(mlog)
-        self.log_file.write(mlog)
-        self.log_file.flush()
         # Entradas y salidas comparten el controlador configurado al arrancar.
         factory = Device.pin_factory
         self.inCH1 = Button(2, bounce_time=0.05)
@@ -146,11 +143,14 @@ class App(tk.Tk):
 
 
     def habilitar_botones(self):
-        self.inCH1.when_pressed = lambda: self.select1()
-        self.inCH2.when_pressed = lambda: self.select2()
-        self.inCH3.when_pressed = lambda: self.select3()
-        self.inCH4.when_pressed = lambda: self.select4()   
-        
+        for channel in range(1, 5):
+            getattr(self, f"inCH{channel}").when_pressed = lambda ch=channel: self.queue_input(ch)
+
+    def queue_input(self, channel):
+        # gpiozero llama desde otro hilo; Tk solo se modifica en process_events.
+        if self.running and self.controller is not None and self.controller.ready():
+            self.ui_events.put({'type': 'select', 'channel': channel})
+
     def toggle_gpio(self, led):
         led.on()
         time.sleep(0.1)
@@ -162,62 +162,31 @@ class App(tk.Tk):
         time.sleep(0.1)
         led.off() 
         time.sleep(0.1)    
+    def select_product(self, channel):
+        if not self.controller.ready():
+            return
+        try:
+            lines = Path('valores.txt').read_text().splitlines()
+            if len(lines) != n_inputs:
+                raise ValueError(f"valores.txt debe tener {n_inputs} líneas.")
+            amount, pulses = map(int, lines[channel - 1].split())
+            if self.controller.submit_sale(channel, amount, pulses):
+                self.deshabilitar_botones()
+        except (OSError, ValueError, IndexError) as exc:
+            self.log(f"No se inició la venta: {exc}")
+
     def select1(self):
-        global entry
-        entry = 1
-        self.deshabilitar_botones()
-        self.toggle_gpio(self.outCH1)
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        mlog = f"[{current_time}] Producto 1 selecionado\n"
-        self.log(mlog)
-        self.log_file.write(mlog)
-        self.log_file.flush()
-        time.sleep(0.1)
-        self.habilitar_botones()
-        self.venta_POS()
-    
+        self.select_product(1)
+
     def select2(self):
-        global entry
-        entry = 2
-        self.deshabilitar_botones()
-        self.toggle_gpio(self.outCH2)
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        mlog = f"[{current_time}] Producto 2 selecionado\n"
-        self.log(mlog)
-        self.log_file.write(mlog)
-        self.log_file.flush()
-        time.sleep(0.1)
-        self.habilitar_botones()
-        self.venta_POS()
-    
+        self.select_product(2)
+
     def select3(self):
-        global entry
-        entry = 3
-        self.deshabilitar_botones()
-        self.toggle_gpio(self.outCH3)
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        mlog = f"[{current_time}] Producto 3 selecionado\n"
-        self.log(mlog)
-        self.log_file.write(mlog)
-        self.log_file.flush()
-        time.sleep(0.1)
-        self.habilitar_botones()
-        self.venta_POS()
-    
+        self.select_product(3)
+
     def select4(self):
-        global entry
-        entry = 4
-        self.deshabilitar_botones()
-        self.toggle_gpio(self.outCH4)
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        mlog = f"[{current_time}] Producto 4 selecionado\n"
-        self.log(mlog)
-        self.log_file.write(mlog)
-        self.log_file.flush()
-        time.sleep(0.1)
-        self.habilitar_botones()
-        self.venta_POS()
-     
+        self.select_product(4)
+
     def toggle_fullscreen(self, event=None):
         self.attributes('-fullscreen', True)
 
@@ -266,30 +235,23 @@ class App(tk.Tk):
         
 
     def pos_config(self):
-         # Fuente aumentada
-         font_large = ("Helvetica", 16)
-         font_large2 = ("Helvetica", 16)
-         font_number = ("Helvetica", 20)
-         font_medium = ("Helvetica", 14)
-         # Sección de control POS
-         self.pos_frame = tk.Frame(self.frame, bd=2, relief=tk.SUNKEN)
-         self.pos_frame.grid(row=2, column=0, padx=10, pady=10)
-        
-         pos_width = 15  # Ancho del botón
-         pos_height = 2  # Ancho del botón
-        
-         tk.Label(self.pos_frame, text="Control POS", font=font_large).grid(row=0, column=0, columnspan=1, pady=10)
-        
-         send_button2 = tk.Button(self.pos_frame, text="Cierre de caja", font=font_large, width=pos_width, height=pos_height, command=self.enviar_cierre)
-         send_button2.grid(row=1, column=0, padx=5)
-        
-         send_button7 = tk.Button(self.pos_frame, text="Carga llaves", font=font_large, width=pos_width, height=pos_height, command=self.enviar_cargaLlaves)
-         send_button7.grid(row=1, column=1, padx=5)
-         
-         send_button8 = tk.Button(self.pos_frame, text="Poll", font=font_large, width=pos_width, height=pos_height, command=self.enviar_polling)
-         send_button8.grid(row=1, column=2, padx=5)
-        
-        
+        self.pos_frame = tk.Frame(self.frame, bd=2, relief=tk.SUNKEN)
+        self.pos_frame.grid(row=2, column=0, padx=10, pady=10)
+        tk.Label(self.pos_frame, text="Control POS Getnet", font=("Helvetica", 16)).grid(
+            row=0, column=0, columnspan=3, pady=10)
+        tk.Label(self.pos_frame, textvariable=self.pos_status, font=("Helvetica", 14),
+                 wraplength=650).grid(row=1, column=0, columnspan=3, pady=10)
+        self.pos_buttons = {}
+        for column, (key, text, command) in enumerate([
+            ('close', 'Cierre de caja', self.enviar_cierre),
+            ('last', 'Último comprobante', self.ultimo_comprobante),
+            ('poll', 'Poll', self.enviar_polling),
+        ]):
+            button = tk.Button(self.pos_frame, text=text, font=("Helvetica", 16),
+                               width=18, height=2, command=command, state='disabled')
+            button.grid(row=2, column=column, padx=5)
+            self.pos_buttons[key] = button
+
     def pulse_test(self):
          # Fuente aumentada
          font_large = ("Helvetica", 16)
@@ -311,56 +273,31 @@ class App(tk.Tk):
          send_button2 = tk.Button(self.test_frame, text="test pulso", font=font_large, width=pos_width, height=pos_height, command=self.test_pulso_acoplado)
          send_button2.grid(row=1, column=1, padx=5)
               
-         send_button3 = tk.Button(self.test_frame, text="CH1_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio2(self.outCH1))
+         send_button3 = tk.Button(self.test_frame, text="CH1_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.test_channel(1))
          send_button3.grid(row=2, column=0, padx=5)
          
-         send_button4 = tk.Button(self.test_frame, text="CH2_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio(self.outCH2))
+         send_button4 = tk.Button(self.test_frame, text="CH2_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.test_channel(2))
          send_button4.grid(row=2, column=1, padx=5)
          
-         send_button5 = tk.Button(self.test_frame, text="CH3_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio(self.outCH3))
+         send_button5 = tk.Button(self.test_frame, text="CH3_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.test_channel(3))
          send_button5.grid(row=3, column=0, padx=5)
          
-         send_button6 = tk.Button(self.test_frame, text="CH4_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.toggle_gpio(self.outCH4))
+         send_button6 = tk.Button(self.test_frame, text="CH4_ON", font=font_large, width=pos_width, height=pos_height, command=lambda: self.test_channel(4))
          send_button6.grid(row=3, column=1, padx=5)
         
     def test_venta(self):
-        global POS_OPERATION
-        precio = 500
-        n = 1
-        mensaje_venta = self.generar_mensaje_venta(precio, "1234", 0,0)
-        self.pos_serial.write(mensaje_venta)
-            
-    def test_pulso(self):
-        global ruta_pulsos
-        n = 1
-        pos = 'Aprobado'
-        if pos == 'Aprobado':
-            ser = serial.Serial(ruta_pulsos, 9600)
-            message = '30313233000A'
-            for i in range(n):
-                ser.write(bytes.fromhex(message))
-                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                mlog = f"[{current_time}] Enviando {message}.\n"
-                self.log(mlog)
-                self.log_file.write(mlog)
-                self.log_file.flush()
-                time.sleep(1)
-            ser.close()
-            time.sleep(1)
+        # Venta real de $500 y un pulso al aprobar; comparte bloqueo y registro.
+        if not self.controller.submit_sale(1, 500, 1):
+            self.log("POS no disponible: hay una operación en curso o pendiente de revisión.")
+
+    def test_channel(self, channel):
+        if not self.controller.submit_test(lambda: self.toggle_gpio(self.outs[channel - 1])):
+            self.log("Prueba GPIO no disponible mientras el POS está ocupado o desconectado.")
 
     def test_pulso_acoplado(self):
-        global ruta_pulsos
-        n = 1
-        pos = 'Aprobado'
-        if pos == 'Aprobado':
-            for i in range(n):
-                self.toggle_gpio2(self.pulseChannel)
-                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                mlog = f"[{current_time}] Enviando test pulso.\n"
-                self.log(mlog)
-                self.log_file.write(mlog)
-                self.log_file.flush()
-      
+        if not self.controller.submit_test(lambda: self.enviar_pulso_acoplado(1)):
+            self.log("Prueba de pulsos no disponible mientras hay un pago pendiente.")
+
     def open_wifi_settings(self):
         """Muestra las redes cercanas y permite conectarse desde la pantalla táctil."""
         if self.wifi_window is not None and self.wifi_window.winfo_exists():
@@ -428,14 +365,10 @@ class App(tk.Tk):
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             mlog = f"[{current_time}] Valores cargados correctamente.\n"
             self.log(mlog)
-            self.log_file.write(mlog)
-            self.log_file.flush()
         except Exception as e:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             mlog = f"[{current_time}] Error al cargar valores: {e}\n"
             self.log(mlog)
-            self.log_file.write(mlog)
-            self.log_file.flush()
 
     def save_values(self):
         global n_inputs
@@ -448,359 +381,88 @@ class App(tk.Tk):
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             mlog = f"[{current_time}] Valores guardados correctamente.\n"
             self.log(mlog)
-            self.log_file.write(mlog)
-            self.log_file.flush()
         except Exception as e:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             mlog = f"[{current_time}] Error al guardar valores: {e}\n"
             self.log(mlog)
-            self.log_file.write(mlog)
-            self.log_file.flush()
     
     def log(self, message):
         self.log_text.insert(tk.END, message + "\n")
         self.log_text.see(tk.END)
-         
-    def enviar_pulso_acoplado(self, n):
-        for i in range(n):
-            self.toggle_gpio2(self.pulseChannel)
-            print('mensaje enviado: pulso acoplado')
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            mlog = f"[{current_time}] Enviando: pulso acopladp\n"
-            self.log(mlog)
-            self.log_file.write(mlog)
-            self.log_file.flush()
-       
-    def venta_POS(self):
-        with open('valores.txt', 'r') as file:
-            for i, line in enumerate(file):
-                print(entry)
-                if i == (entry -1):
-                    print(i)
-                    self.precio, self.n_pulsos = line.strip().split()
-                    print(self.precio, self.n_pulsos)
-                    break
-        self.deshabilitar_botones()
-                                   
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        mlog = f"[{current_time}] Iniciando venta por {self.precio}\n"
-        self.log(mlog)
-        self.log_file.write(mlog)
-        self.log_file.flush() 
-        mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,1)
-        self.pos_serial.write(mensaje_venta)
-                     
-    def conectar_serial(self):
-        """Intenta conectar al puerto serial cuando esta disponible."""
-        while True:
-            if os.path.exists(SERIAL_PORT):
-                try:
-                    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    mlog = f"[{current_time}] Intentando conectar a {SERIAL_PORT}...\n"
-                    self.log(mlog)
-                    self.log_file.write(mlog)
-                    self.log_file.flush() 
-                    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-                    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    mlog = f"[{current_time}] Conectado exitosamente.\n"
-                    self.log(mlog)
-                    self.log_file.write(mlog)
-                    self.log_file.flush() 
-                    return ser
-                except serial.SerialException as e:
-                    print(f"Error al conectar: {e}")
-            else:
-                print(f"{SERIAL_PORT} no encontrado. Esperando conexion...")
-                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                mlog = f"[{current_time}] {SERIAL_PORT} no encontrado. Esperando conexion...\n"
-                self.log(mlog)
-                self.log_file.write(mlog)
-                self.log_file.flush() 
-
-            time.sleep(1)
-            
-    def esperar_ack(self, timeout=3):
-        """Espera un ACK (0x06) desde el POS con un tiempo maximo."""
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            if self.pos_serial.in_waiting > 0:
-                raw = self.pos_serial.readline()
-                if raw.strip() == b'\x06':
-                    print("ACK recibido tras polling")
-                    return True
-        print("No se recibio ACK dentro del tiempo")
-        return False
-
-    def POS_listener(self):
-        """Escucha el puerto serial indefinidamente."""
-        while True:
-            self.pos_serial = self.conectar_serial()
-            try:            
-                while True:
-                    if self.pos_serial.in_waiting > 0:
-                        raw_line = self.pos_serial.readline()
-                        print(raw_line)
-                        if raw_line.strip() == b'\x06':
-                            linea = "ACK recibido"
-                            print("ACK recibido")
-                        else:
-                            linea = raw_line.decode('utf-8', errors='ignore').strip()
-                        #Mensaje de POS                        
-                        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        mlog = f"[{current_time}] POS: {linea}\n"
-                        self.log(mlog)
-                        self.log_file.write(mlog)
-                        self.log_file.flush() 
-                        if linea == b"\x06":
-                            print("true")
-                        
-                        #Interpretando mensaje de POS
-                        codigos = re.findall(r'\d{4}', linea)
-                        if "0911" in codigos:
-                            self.enviar_polling()
-                            if self.esperar_ack():
-                                
-                                with open('valores.txt', 'r') as file:
-                                    for i, line in enumerate(file):
-                                        print(entry)
-                                        if i == (entry -1):
-                                            print(i)
-                                            self.precio, self.n_pulsos = line.strip().split()
-                                            print(self.precio, self.n_pulsos)
-                                            break
-                                self.deshabilitar_botones()
-                                   
-                                current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                mlog = f"[{current_time}] Iniciando venta por {self.precio}\n"
-                                self.log(mlog)
-                                self.log_file.write(mlog)
-                                self.log_file.flush() 
-                                mensaje_venta = self.generar_mensaje_venta(self.precio, "1234", 0,1)
-                                self.pos_serial.write(mensaje_venta)
-                            else:
-                                self.log("[ERROR] No se recibio ACK tras el polling.")
-                          
-                        elif "0210" in codigos:
-                            self.log(f"[{current_time}] Respuesta de venta recibida.")
-                            self.log_file.write(f"[{current_time}] Respuesta de venta recibida.\n")
-                            self.log_file.flush()
-                            self.interpretar_respuesta_0210(linea, self.n_pulsos)
-                            
-                        elif "0510" in codigos:
-                            self.log(f"[{current_time}] Respuesta de cierre recibida.")
-                            self.log_file.write(f"[{current_time}] POS:{linea}.\n")
-                            self.log_file.flush()
-                            self.enviar_ack()
-                            
-                        elif "0810" in codigos:
-                            self.log(f"[{current_time}] Respuesta de carga de llaves.")
-                            self.log_file.write(f"[{current_time}] POS:{linea}.\n")
-                            self.log_file.flush()
-                            self.enviar_ack()
-
-                        self.habilitar_botones()
-                                               
-            except (serial.SerialException, OSError) as e:
-                print(f"Desconectado. Error: {e}")
-                self.pos_serial.close()
-                print("Reintentando conexion...")
-
-    def interpretar_respuesta_0210(self, linea, n):
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        partes = linea.split('|')
-        if len(partes) < 2:
-            self.log("[ERROR] Respuesta 0210 mal formada.")
-            self.log_file.write("[ERROR] Respuesta 0210 mal formada.\n")
-            self.log_file.flush()
-            return
-
-        codigo_respuesta = partes[1]
-        if codigo_respuesta == "00":
-            self.log(f"[{current_time}] Venta Aprobada.")
-            self.log_file.write(f"[{current_time}] Venta Aprobada.\n")
-            self.log_file.flush()
-            self.enviar_ack()
-            self.toggle_gpio(self.outs[entry - 1])
-            self.enviar_pulso_acoplado(int(n))
-        elif codigo_respuesta == "01":
-            self.log(f"[{current_time}]Venta Rechazada.")
-            self.log_file.write(f"[{current_time}]Venta Rechazada.\n")
-            self.log_file.flush()
-            self.enviar_ack()
-            #self.serPulsos.close()
-
-        else:
-            self.log(f"[{current_time}] Error en la venta. Codigo: {codigo_respuesta}")
-            self.log_file.write(f"[{current_time}] Error en la venta. Codigo: {codigo_respuesta}\n")
-            self.log_file.flush()
-            self.enviar_ack()
-            #self.serPulsos.close()
-        self.habilitar_botones()
-
-    def generar_mensaje_venta(self, monto, numero_ticket, envia_voucher, envia_mensajes):
-        """
-        Genera el mensaje de venta segn el formato del protocolo.
-        """
-        def calcular_lrc(data):
-            """Calcula el LRC (Longitudinal Redundancy Check)."""
-            lrc = 0
-            for byte in data:
-                lrc ^= byte
-            return lrc
-
-        stx = 0x02
-        etx = 0x03
-        separador = 0x7C  # '|'
-
-        # Construccin de los campos
-        comando = "0200".encode("ascii")
-        monto = str(monto).zfill(9).encode("ascii")
-        numero_ticket = numero_ticket.ljust(20, '0').encode("ascii")
-        campo_impresion = str(envia_voucher).encode("ascii")
-        campo_mensajes = str(envia_mensajes).encode("ascii")
-
-        # Concatenar el mensaje
-        mensaje = bytearray([stx])  # Inicio del mensaje
-        mensaje.extend(comando)
-        mensaje.append(separador)
-        mensaje.extend(monto)
-        mensaje.append(separador)
-        mensaje.extend(numero_ticket)
-        mensaje.append(separador)
-        mensaje.extend(campo_impresion)
-        mensaje.append(separador)
-        mensaje.extend(campo_mensajes)
-        mensaje.append(separador)
-        mensaje.append(etx)  # Fin del mensaje
-
-        # Calcular y agregar el LRC
-        lrc = calcular_lrc(mensaje[1:])  # LRC se calcula desde despus del STX
-        mensaje.append(lrc)
-
-        return mensaje
-        
-    def generar_mensaje_cierre(self, envia_voucher):
-        """
-        Genera el mensaje de venta segn el formato del protocolo.
-        """
-        def calcular_lrc(data):
-            """Calcula el LRC (Longitudinal Redundancy Check)."""
-            lrc = 0
-            for byte in data:
-                lrc ^= byte
-            return lrc
-
-        stx = 0x02
-        etx = 0x03
-        separador = 0x7C  # '|'
-
-        # Construccin de los campos
-        comando = "0500".encode("ascii")
-        campo_impresion = str(envia_voucher).encode("ascii")
-
-        # Concatenar el mensaje
-        mensaje = bytearray([stx])  # Inicio del mensaje
-        mensaje.extend(comando)
-        mensaje.append(separador)
-        mensaje.extend(campo_impresion)
-        mensaje.append(etx)  # Fin del mensaje
-
-        # Calcular y agregar el LRC
-        lrc = calcular_lrc(mensaje[1:])  # LRC se calcula desde despus del STX
-        mensaje.append(lrc)
-
-        return mensaje
-
-    def generar_mensaje_carga_llaves(self):
-        """
-        Genera el mensaje de venta segn el formato del protocolo.
-        """
-        def calcular_lrc(data):
-            """Calcula el LRC (Longitudinal Redundancy Check)."""
-            lrc = 0
-            for byte in data:
-                lrc ^= byte
-            return lrc
-
-        stx = 0x02
-        etx = 0x03
-        separador = 0x7C  # '|'
-
-        # Construccin de los campos
-        comando = "0800".encode("ascii")
-        # Concatenar el mensaje
-        mensaje = bytearray([stx])  # Inicio del mensaje
-        mensaje.extend(comando)
-        mensaje.append(etx)  # Fin del mensaje
-
-        # Calcular y agregar el LRC
-        lrc = calcular_lrc(mensaje[1:])  # LRC se calcula desde despus del STX
-        mensaje.append(lrc)
-
-        return mensaje
-
-    def generar_mensaje_polling(self):
-        """
-        Genera el mensaje de venta segn el formato del protocolo.
-        """
-        def calcular_lrc(data):
-            """Calcula el LRC (Longitudinal Redundancy Check)."""
-            lrc = 0
-            for byte in data:
-                lrc ^= byte
-            return lrc
-
-        stx = 0x02
-        etx = 0x03
-        separador = 0x7C  # '|'
-
-        # Construccin de los campos
-        comando = "0100".encode("ascii")
-        # Concatenar el mensaje
-        mensaje = bytearray([stx])  # Inicio del mensaje
-        mensaje.extend(comando)
-        mensaje.append(etx)  # Fin del mensaje
-
-        # Calcular y agregar el LRC
-        lrc = calcular_lrc(mensaje[1:])  # LRC se calcula desde despus del STX
-        mensaje.append(lrc)
-
-        return mensaje
-
-    def enviar_ack(self):
-        self.pos_serial.write(b'\x06')
-        self.log("[ACK] Enviado al POS.")
-        self.log_file.write("[ACK] Enviado al POS.\n")
+        self.log_file.write(message.rstrip() + "\n")
         self.log_file.flush()
 
-    def limpiar_mensaje(self, linea):
-        # Elimina STX (0x02), ETX (0x03) y posibles bytes de control
-        return linea.strip('\x02\x03\x08') 
+    def process_events(self):
+        if not self.running:
+            return
+        for _ in range(100):
+            try:
+                event = self.ui_events.get_nowait()
+            except queue.Empty:
+                break
+            if event['type'] == 'select':
+                self.select_product(event['channel'])
+            elif event['type'] == 'log':
+                now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.log(f"[{now}] {event['message']}")
+            elif event['type'] == 'state':
+                self.update_pos_state(event)
+            elif event['type'] == 'command_result':
+                response = json.dumps(event['response'], ensure_ascii=False, indent=2)
+                self.log(f"Getnet {event['command']}: {response}")
+                if event['command'] == 'last':
+                    messagebox.showinfo("Último comprobante Getnet", response, parent=self)
+        self.after(50, self.process_events)
+
+    def update_pos_state(self, event):
+        connected, busy, blocked = event['connected'], event['busy'], event['blocked']
+        if busy:
+            self.pos_status.set("POS ocupado: esperando resultado o entregando pulsos…")
+        elif blocked:
+            self.pos_status.set(f"Revisar pago {blocked['ticket']} (${blocked.get('amount', '?')}). "
+                                "Consultar último comprobante; nuevas ventas bloqueadas.")
+        elif connected:
+            self.pos_status.set("POS Getnet conectado. Selecciona una entrada.")
+        else:
+            self.pos_status.set("POS desconectado. Reconectando automáticamente…")
+        if connected and not busy and not blocked:
+            self.habilitar_botones()
+        else:
+            self.deshabilitar_botones()
+        for key, button in self.pos_buttons.items():
+            allowed = connected and not busy and (not blocked or key in ('poll', 'last'))
+            button.configure(state='normal' if allowed else 'disabled')
+
+    def enviar_pulso_acoplado(self, n):
+        for _ in range(n):
+            if not self.running:
+                raise RuntimeError("Cierre durante la entrega de pulsos.")
+            self.toggle_gpio2(self.pulseChannel)
+
+    def deliver_product(self, channel, pulses):
+        self.toggle_gpio(self.outs[channel - 1])
+        self.enviar_pulso_acoplado(pulses)
+
+    def submit_pos_command(self, command):
+        if not self.controller.submit_command(command):
+            self.log("Comando no disponible: POS desconectado, ocupado o pago pendiente.")
 
     def enviar_cierre(self):
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.log(f"{current_time} Enviando cierre")
-        self.log_file.write(f"{current_time} Enviando cierre\n")
-        self.log_file.flush()
-        mensaje_cierre = self.generar_mensaje_cierre(1)
-        self.pos_serial.write(mensaje_cierre)
-        
-    def enviar_cargaLlaves(self):
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.log(f"{current_time} Enviando carga de llaves")
-        self.log_file.write(f"{current_time} Enviando carga de llaves\n")
-        self.log_file.flush()
-        mensaje_carga_llaves = self.generar_mensaje_carga_llaves()
-        self.pos_serial.write(mensaje_carga_llaves)
-        
+        self.submit_pos_command('close')
+
     def enviar_polling(self):
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.log(f"{current_time} Enviando poll")
-        self.log_file.write(f"{current_time} Enviando poll\n")
-        self.log_file.flush()
-        mensaje_polling = self.generar_mensaje_polling()
-        self.pos_serial.write(mensaje_polling)
-       
+        self.submit_pos_command('poll')
+
+    def ultimo_comprobante(self):
+        self.submit_pos_command('last')
+
+    def close_app(self):
+        self.running = False
+        self.deshabilitar_botones()
+        if self.controller is not None:
+            self.controller.stop()
+        self.destroy()
+
 class ConfigureInputsWindow(tk.Toplevel):
     def __init__(self, master):
         super().__init__(master)
@@ -921,15 +583,17 @@ if __name__ == "__main__":
     # Asociar la señal SIGINT (Ctrl+C) al manejador de salida
     signal.signal(signal.SIGINT, handle_exit)
 
-    # Ejecutar el programa Node.js
-    #node_process = subprocess.Popen(["node", node_program])
-    
     try:
         configure_gpio_factory()
         with open(log_filename, "a") as log_file:
             print("iniciando")
             app = App(log_file)
-            app.mainloop()
+            try:
+                app.mainloop()
+            finally:
+                app.running = False
+                app.deshabilitar_botones()
+                app.controller.stop()
     finally:
         if Device.pin_factory is not None:
             Device.pin_factory.close()

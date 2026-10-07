@@ -1,6 +1,6 @@
 # Pulsos V2: instalación en otra Raspberry Pi
 
-La aplicación principal es `interfaz_pulsos_optoacoplada.py`. Lee precios y cantidades de pulsos desde `valores.txt`, recibe entradas por GPIO, solicita ventas al POS por USB serial y genera los pulsos por GPIO. El engranaje abre la selección de redes Wi-Fi con teclado táctil.
+La aplicación principal es `interfaz_pulsos_optoacoplada.py`. Lee precios y cantidades de pulsos desde `valores.txt`, recibe entradas por GPIO, solicita ventas al POS **Getnet en modo integrado USB** mediante `getnet_serial` y genera los pulsos por GPIO. El engranaje abre la selección de redes Wi-Fi con teclado táctil. Consulta [GETNET.md](GETNET.md) para la migración, el flujo y la recuperación de pagos pendientes.
 
 No se valida el número de serie de la Raspberry. No se necesita el conversor serial de pulsos ni ejecutar el programa Node.js para este flujo. El puerto serial del **POS sí es necesario**.
 
@@ -15,12 +15,15 @@ Copia el proyecto a `~/Pulsos_V2`. Estos archivos deben quedar juntos:
 ```text
 Pulsos_V2/
 ├── interfaz_pulsos_optoacoplada.py
+├── getnet_payments.py
+├── getnet_serial/             # Copiar todo el paquete .py de la librería
 ├── wifi_touch.py
 ├── gear.png
 ├── pencil2.png
 ├── valores.txt
 ├── requirements.txt
-└── test_wifi_touch.py          # Opcional: pruebas sin hardware
+├── test_wifi_touch.py         # Opcional: pruebas sin hardware
+└── test_getnet_payments.py    # Opcional: pruebas sin hardware
 ```
 
 Transfiere los archivos por USB, SCP o tu repositorio, incluyendo los archivos nuevos. No copies `.venv` ni `__pycache__` desde otra Raspberry: recrea el entorno. Conserva una copia de `valores.txt` de la instalación que quieras replicar.
@@ -112,10 +115,12 @@ Algunos dispositivos no publican una ruta `by-id`; usa el puerto que detecte la 
 ```python
 SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 115200
+SALE_TIMEOUT = 120
+PRINT_ON_POS = False
 n_inputs = 4
 ```
 
-Si existe un identificador estable en `/dev/serial/by-id/`, puedes usar su ruta completa como `SERIAL_PORT` para evitar cambios de `ttyACM0` al conectar otros dispositivos. El POS debe tener la misma configuración de integración/protocolo que en la instalación original. Espera el mensaje de conexión del POS antes de accionar ventas o comandos del terminal.
+Si existe un identificador estable en `/dev/serial/by-id/`, puedes usar su ruta completa como `SERIAL_PORT` para evitar cambios de `ttyACM0` al conectar otros dispositivos. El POS Getnet debe estar configurado en modo integrado USB. La conexión se verifica mediante polling Getnet antes de habilitar entradas. `SALE_TIMEOUT` controla la espera de la respuesta final en segundos y `PRINT_ON_POS` la impresión de la venta en el terminal.
 
 Aunque existe `n_inputs`, el código configura **cuatro entradas y cuatro callbacks GPIO fijos**. Mantén `n_inputs = 4` para replicar esta versión; cambiar ese valor por sí solo no adapta el hardware. El engranaje ahora configura Wi-Fi.
 
@@ -139,11 +144,11 @@ Desde una terminal del escritorio de la Raspberry:
 ```bash
 cd ~/Pulsos_V2
 .venv/bin/python -c "import tkinter, serial, PIL, gpiozero, lgpio; print('Dependencias OK')"
-.venv/bin/python -m unittest -v test_wifi_touch
+.venv/bin/python -m unittest -v test_getnet_payments test_wifi_touch
 .venv/bin/python interfaz_pulsos_optoacoplada.py
 ```
 
-Las pruebas Wi-Fi usan simulaciones y no conectan redes ni activan GPIO. La ejecución real inicializa las salidas GPIO. Inicia siempre desde la carpeta del proyecto: las imágenes, `valores.txt` y `log/` se resuelven respecto de la carpeta actual.
+Estas pruebas usan simulaciones y no cobran, conectan redes ni activan GPIO. La ejecución real inicializa las salidas GPIO. Inicia siempre desde la carpeta del proyecto: las imágenes, `valores.txt` y `log/` se resuelven respecto de la carpeta actual. Los pagos se registran en `pagos_getnet.sqlite3`, junto al archivo principal; no borres este archivo para desbloquear una venta incierta. Al copiar una instalación con pagos pendientes, resuélvelos primero en el terminal original y conserva el registro de respaldo.
 
 La app abre a pantalla completa. Los registros se guardan en `log/log_AAAAMMDD.txt`; los errores de arranque también aparecen en la terminal. La tecla Escape de la ventana principal permite salir de pantalla completa: el modo actual no es un bloqueo completo del escritorio.
 
@@ -188,5 +193,6 @@ Crea antes la carpeta con `mkdir -p ~/.config/autostart`. Las rutas deben ser ab
 | Error de permisos al conectar Wi-Fi | Usar la sesión gráfica local y revisar `nmcli general permissions`. |
 | `no display name` / `$DISPLAY` | Iniciar desde el escritorio; una sesión SSH o un servicio de arranque sin sesión gráfica no basta. |
 | Ventas o pulsos no funcionan | Confirmar conexión POS, cuatro líneas válidas en `valores.txt` y cableado BCM. |
+| Pago pendiente de revisión | Seguir [GETNET.md](GETNET.md); reconectar el cable no confirma si el POS cobró. |
 
 Antes de poner la nueva Raspberry en servicio, verifica en el equipo físico cada entrada, el número de pulsos tras una venta aprobada y la ausencia de pulsos tras una venta rechazada. El botón **test venta** envía una solicitud al POS por monto 500 y **test pulso** activa la salida: no son simulaciones. La validación por software no sustituye esta comprobación física.

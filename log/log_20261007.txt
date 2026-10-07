@@ -1,0 +1,141 @@
+[2026-10-07 15:23:16] Valores cargados correctamente.
+[2026-10-07 15:23:16] configurando GPIO
+[2026-10-07 15:23:16] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:18] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:18] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:19] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:23] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:23] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:23] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:32] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:33] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:34] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:36] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:23:37] Getnet: Aprobado
+[2026-10-07 15:23:37] POS Getnet conectado: /dev/ttyACM0
+[2026-10-07 15:23:40] Getnet: Aprobado
+[2026-10-07 15:23:43] Getnet: Aprobado
+[2026-10-07 15:23:46] Getnet: Aprobado
+[2026-10-07 15:23:49] Getnet: Aprobado
+[2026-10-07 15:23:52] Getnet: Aprobado
+[2026-10-07 15:23:55] Getnet: Aprobado
+[2026-10-07 15:23:58] Getnet: Aprobado
+[2026-10-07 15:24:01] Getnet: Aprobado
+[2026-10-07 15:24:04] Getnet: Aprobado
+[2026-10-07 15:24:07] Getnet: Aprobado
+[2026-10-07 15:24:10] Conexión Getnet perdida: POS outcome is uncertain; do not resend automatically. write failed: [Errno 5] Input/output error
+[2026-10-07 15:24:10] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:12] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:13] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:13] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:14] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:15] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:16] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:17] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:18] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:19] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:20] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:21] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:22] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:23] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:24] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:25] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:26] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:27] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:28] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:29] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:30] Esperando reconexión Getnet: [Errno 2] could not open port /dev/ttyACM0: [Errno 2] No such file or directory: '/dev/ttyACM0'
+[2026-10-07 15:24:31] Getnet: Aprobado
+[2026-10-07 15:24:31] POS Getnet conectado: /dev/ttyACM0
+[2026-10-07 15:24:36] Getnet: Mensaje mal formado
+[2026-10-07 15:24:36] Conexión Getnet perdida: POS outcome is uncertain; do not resend automatically. POS returned an unassigned operation response: Mensaje mal formado
+[2026-10-07 15:24:36] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:37] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:38] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:39] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:40] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:41] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:42] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:43] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:44] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:45] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:46] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:47] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:48] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:49] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:50] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:51] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:52] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:53] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:54] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:55] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:56] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:57] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:58] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:24:59] Esperando reconexión Getnet: [Errno 16] could not open port /dev/ttyACM0: [Errno 16] Device or resource busy: '/dev/ttyACM0'
+[2026-10-07 15:25:00] Getnet: Aprobado
+[2026-10-07 15:25:00] POS Getnet conectado: /dev/ttyACM0
+[2026-10-07 15:25:03] Getnet: Aprobado
+[2026-10-07 15:25:06] Getnet: Aprobado
+[2026-10-07 15:25:09] Getnet: Aprobado
+[2026-10-07 15:25:12] Getnet: Aprobado
+[2026-10-07 15:25:15] Getnet: Aprobado
+[2026-10-07 15:25:19] Getnet: Aprobado
+[2026-10-07 15:25:22] Getnet: Aprobado
+[2026-10-07 15:25:25] Getnet: Aprobado
+[2026-10-07 15:25:28] Getnet: Aprobado
+[2026-10-07 15:25:31] Getnet: Aprobado
+[2026-10-07 15:25:34] Getnet: Aprobado
+[2026-10-07 15:25:37] Getnet: Aprobado
+[2026-10-07 15:25:40] Getnet: Aprobado
+[2026-10-07 15:25:43] Getnet: Aprobado
+[2026-10-07 15:25:46] Getnet: Aprobado
+[2026-10-07 15:25:49] Getnet: Aprobado
+[2026-10-07 15:25:52] Venta Getnet CH2: $200, 2 pulsos, ticket ED079DD362
+[2026-10-07 15:25:54] Getnet: Lectura de tarjetas
+[2026-10-07 15:26:02] Getnet: Operacion Cancelada
+[2026-10-07 15:26:02] Pago rechazado/cancelado: Operacion Cancelada
+[2026-10-07 15:26:05] Getnet: Aprobado
+[2026-10-07 15:26:08] Getnet: Aprobado
+[2026-10-07 15:26:11] Getnet: Aprobado
+[2026-10-07 15:26:14] Getnet: Aprobado
+[2026-10-07 15:26:17] Venta Getnet CH1: $100, 1 pulsos, ticket FAC218ECEE
+[2026-10-07 15:26:19] Getnet: Lectura de tarjetas
+[2026-10-07 15:26:24] Getnet: Enviando transacción a Getnet
+[2026-10-07 15:26:26] Getnet: Aprobado
+[2026-10-07 15:26:26] Pago aprobado: CH1, 1 pulsos entregados, ticket FAC218ECEE
+[2026-10-07 15:26:29] Getnet: Aprobado
+[2026-10-07 15:26:32] Getnet: Aprobado
+[2026-10-07 15:26:35] Getnet: Aprobado
+[2026-10-07 15:26:38] Getnet: Aprobado
+[2026-10-07 15:26:41] Getnet: Aprobado
+[2026-10-07 15:26:44] Getnet: Aprobado
+[2026-10-07 15:26:47] Getnet: Aprobado
+[2026-10-07 15:26:50] Getnet: Aprobado
+[2026-10-07 15:26:54] Getnet: Aprobado
+[2026-10-07 15:26:56] Getnet: Aprobado
+[2026-10-07 15:27:00] Getnet: Aprobado
+[2026-10-07 15:27:03] Getnet: Aprobado
+[2026-10-07 15:27:06] Venta Getnet CH2: $200, 2 pulsos, ticket E5690D6BF9
+[2026-10-07 15:27:07] Getnet: Lectura de tarjetas
+[2026-10-07 15:27:11] Getnet: Enviando transacción a Getnet
+[2026-10-07 15:27:13] Getnet: Aprobado
+[2026-10-07 15:27:13] Pago aprobado: CH2, 2 pulsos entregados, ticket E5690D6BF9
+[2026-10-07 15:27:16] Getnet: Aprobado
+[2026-10-07 15:27:19] Getnet: Aprobado
+[2026-10-07 15:27:22] Getnet: Aprobado
+[2026-10-07 15:27:25] Getnet: Aprobado
+[2026-10-07 15:27:28] Getnet: Aprobado
+[2026-10-07 15:27:31] Getnet: Aprobado
+[2026-10-07 15:27:34] Getnet: Aprobado
+[2026-10-07 15:27:37] Getnet: Aprobado
+[2026-10-07 15:27:40] Getnet: Aprobado
