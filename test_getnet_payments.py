@@ -82,6 +82,7 @@ class PaymentTests(unittest.TestCase):
             '/dev/POS', 115200, self.path,
             deliver or (lambda channel, pulses: self.delivered.append((channel, pulses))),
             pos_factory=pos_factory or Mock(), retry_interval=0.01, poll_interval=0.01,
+            auto_recovery=False,
         )
         self.addCleanup(controller.stop)
         return controller
@@ -90,7 +91,7 @@ class PaymentTests(unittest.TestCase):
         controller = self.controller()
         transport = SerialPOS(**transport_options)
         controller.pos = POS('/dev/POS', transport=transport,
-                             on_message=controller.receive_message)
+                             on_message=controller.receive_message, on_raw=controller.receive_raw)
         controller.connected = True
         return controller, transport
 
@@ -123,6 +124,83 @@ class PaymentTests(unittest.TestCase):
         controller, wire = self.attached()
         controller.receive_message({'FunctionCode': 112, 'ResponseCode': 0, 'MessageText': 'Esperando'})
         self.assertEqual(self.delivered, [])
+
+    @staticmethod
+    def logs(controller):
+        messages = []
+        while not controller.events.empty():
+            event = controller.events.get_nowait()
+            if event['type'] == 'log':
+                messages.append(event['message'])
+        return messages
+
+    def test_sale_logs_complete_response_and_original_signed_json(self):
+        controller, wire = self.attached()
+        controller.sell(3, 1200, 7)
+        messages = self.logs(controller)
+        responses = [json.loads(text.removeprefix('Getnet respuesta: '))
+                     for text in messages if text.startswith('Getnet respuesta: ')]
+        final = next(response for response in responses if response.get('FunctionCode') == 100)
+        self.assertEqual(final['Amount'], 1200)
+        self.assertEqual(final['Ticket'], wire.writes[0]['TicketNumber'])
+        self.assertEqual(final['ResponseMessage'], 'Resultado')
+        raw = [json.loads(text.removeprefix('Getnet RX: '))
+               for text in messages if text.startswith('Getnet RX: ')]
+        self.assertTrue(any('Sign' in response and unwrap(response) == final for response in raw))
+
+    def test_raw_callback_preserves_spaces_unicode_and_line_breaks(self):
+        controller, wire = self.attached()
+        outer = json.loads(sign_message({'FunctionCode': 106, 'ResponseCode': 0,
+                                        'Connected': True, 'ResponseMessage': 'Aprobación'}))
+        raw = json.dumps(outer, ensure_ascii=False, indent=3)
+        encoded = raw.encode('utf-8')
+        # El parser real reensambla el objeto fragmentado sin reformatearlo.
+        stream = controller.pos._stream
+        for offset in range(0, len(encoded), 7):
+            stream.feed(encoded[offset:offset + 7])
+        self.assertEqual(self.logs(controller), ['Getnet RX: ' + raw])
+
+    def test_automatic_poll_is_silent_but_manual_poll_logs_response(self):
+        controller, wire = self.attached()
+        for _ in range(3):
+            self.assertTrue(controller.poll_ok(controller.automatic_poll()))
+        self.assertEqual(self.logs(controller), [])
+        controller.pos.poll()
+        messages = self.logs(controller)
+        self.assertTrue(any(message.startswith('Getnet RX: ') for message in messages))
+        self.assertTrue(any(message.startswith('Getnet respuesta: ') for message in messages))
+
+    def test_sale_response_during_poll_is_still_logged(self):
+        controller, wire = self.attached()
+        controller._automatic_poll = True
+        message = {'FunctionCode': 100, 'ResponseCode': 0, 'Ticket': 'LATE', 'Amount': 500}
+        raw = sign_message(message).decode()
+        controller.receive_raw(raw, json.loads(raw))
+        controller.receive_message(message)
+        messages = self.logs(controller)
+        self.assertIn('Getnet RX: ' + raw, messages)
+        self.assertIn('Getnet respuesta: ' + json.dumps(message, ensure_ascii=False), messages)
+        self.assertEqual(self.delivered, [])
+
+    def test_disconnect_notice_is_not_repeated_for_each_retry(self):
+        controller, wire = self.attached()
+        controller._connection_notice = True
+        controller.disconnect(reason='USB desconectado')
+        controller.disconnect(reason='No se encuentra el puerto')
+        controller.disconnect(reason='No se encuentra el puerto')
+        messages = self.logs(controller)
+        self.assertEqual(len(messages), 1)
+        self.assertIn('POS Getnet desconectado', messages[0])
+
+    def test_poll_failure_restores_message_logging(self):
+        controller = self.controller()
+        controller.pos = Mock()
+        controller.pos.poll.side_effect = OSError('USB desconectado')
+        with self.assertRaises(OSError):
+            controller.automatic_poll()
+        self.assertFalse(controller._automatic_poll)
+        controller.receive_message({'FunctionCode': 106, 'ResponseCode': 0, 'Connected': True})
+        self.assertTrue(self.logs(controller))
 
     def test_rejection_does_not_deliver_and_allows_next_sale(self):
         controller, wire = self.attached(code=5)

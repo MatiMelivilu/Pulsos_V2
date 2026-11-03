@@ -17,6 +17,8 @@ from gpiozero import Device, LED, Button
 SERIAL_PORT = '/dev/ttyACM0'
 BAUD_RATE = 115200
 SALE_TIMEOUT = 120
+AUTO_RECOVERY = True
+RECOVERY_INTERVAL = 30
 PRINT_ON_POS = False
 PAYMENT_JOURNAL = Path(__file__).with_name('pagos_getnet.sqlite3')
 
@@ -104,6 +106,7 @@ class App(tk.Tk):
             SERIAL_PORT, BAUD_RATE, PAYMENT_JOURNAL, self.deliver_product,
             on_selected=lambda channel: self.toggle_gpio(self.outs[channel - 1]),
             events=self.ui_events, sale_timeout=SALE_TIMEOUT, print_on_pos=PRINT_ON_POS,
+            auto_recovery=AUTO_RECOVERY, recovery_interval=RECOVERY_INTERVAL,
         )
         self.deshabilitar_botones()
         self.controller.start()
@@ -341,7 +344,7 @@ class App(tk.Tk):
         self.load_values()
         
     def edit_price(self, index):
-        if self.virtual_keyboard is not None:
+        if self.virtual_keyboard is not None and self.virtual_keyboard.winfo_exists():
             self.virtual_keyboard.destroy()
         
         self.virtual_keyboard = VirtualKeyboard(self, index, self.price_vars[index])
@@ -416,7 +419,9 @@ class App(tk.Tk):
 
     def update_pos_state(self, event):
         connected, busy, blocked = event['connected'], event['busy'], event['blocked']
-        if busy:
+        if event.get('recovering'):
+            self.pos_status.set("Recuperando pago pendiente: cancelando o anulando automáticamente…")
+        elif busy:
             self.pos_status.set("POS ocupado: esperando resultado o entregando pulsos…")
         elif blocked:
             self.pos_status.set(f"Revisar pago {blocked['ticket']} (${blocked.get('amount', '?')}). "
@@ -520,6 +525,12 @@ class ConfigureInputsWindow(tk.Toplevel):
 class VirtualKeyboard(tk.Toplevel):
     def __init__(self, master, index, price_var):
         super().__init__(master)
+        self._closed = False
+        self._present_job = None
+        self.transient(master)
+        self.attributes('-topmost', True)
+        self.protocol('WM_DELETE_WINDOW', self.destroy)
+        self.bind('<Escape>', self.close_with_escape)
         self.title(f"Editar precio {index+1}")
         self.geometry("480x420")
         self.price_var = price_var
@@ -537,6 +548,42 @@ class VirtualKeyboard(tk.Toplevel):
         for (text, row, col) in buttons:
             action = lambda x=text: self.click(x)
             tk.Button(self, text=text, width=10, height=2, command=action, font=("Helvetica", 16)).grid(row=row, column=col, padx=5, pady=5)
+
+        # Esperar que el gestor de ventanas la muestre antes de capturar el touch.
+        self._present_job = self.after_idle(self.present)
+
+    def present(self):
+        self._present_job = None
+        if self._closed:
+            return
+        if not self.winfo_viewable():
+            self._present_job = self.after(50, self.present)
+            return
+        self.lift()
+        self.grab_set()
+        self.entry.focus_force()
+
+    def close_with_escape(self, event=None):
+        self.destroy()
+        return 'break'
+
+    def destroy(self):
+        if self._closed:
+            return
+        self._closed = True
+        if self._present_job is not None:
+            self.after_cancel(self._present_job)
+            self._present_job = None
+        if self.grab_current() is self:
+            self.grab_release()
+        self.attributes('-topmost', False)
+        master = self.master
+        super().destroy()
+        if getattr(master, 'virtual_keyboard', None) is self:
+            master.virtual_keyboard = None
+        if master.winfo_exists() and getattr(master, 'running', True):
+            master.lift()
+            master.focus_force()
     
     def click(self, key):
         if key == 'cerrar':

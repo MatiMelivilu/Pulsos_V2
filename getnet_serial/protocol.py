@@ -55,10 +55,11 @@ def unwrap(message):
 class JSONStream:
     """Frame concatenated/fragmented JSON objects, including split UTF-8."""
 
-    def __init__(self, max_bytes=1048576):
+    def __init__(self, max_bytes=1048576, *, on_object=None):
         self.decoder = codecs.getincrementaldecoder("utf-8")()
         self.buffer = ""
         self.max_bytes = max_bytes
+        self.on_object = on_object
 
     def feed(self, chunk):
         try:
@@ -95,7 +96,11 @@ class JSONStream:
             if end is None:
                 return messages
             try:
-                messages.append(json.loads(self.buffer[:end]))
+                raw = self.buffer[:end]
+                message = json.loads(raw)
             except ValueError as exc:
                 raise ProtocolError("Malformed response JSON") from exc
+            if self.on_object is not None:
+                self.on_object(raw, message)
+            messages.append(message)
             self.buffer = self.buffer[end:]

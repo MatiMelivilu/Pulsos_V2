@@ -33,6 +33,15 @@ La selección, el canal de entrega y la cantidad de pulsos permanecen asociados 
 
 El estado del POS se consulta aproximadamente cada tres segundos cuando no hay una operación. Si el USB desaparece o el POS deja de responder, se cierra la conexión y se vuelve a abrir con reintentos. Una desconexión entre ventas permite recuperar el funcionamiento sin reiniciar la app. La ruta configurada debe volver a corresponder al mismo terminal.
 
+## Respuestas del POS en el log
+
+La pantalla y `log/log_AAAAMMDD.txt` incluyen estos registros para los mensajes de las operaciones:
+
+- `Getnet RX: {...}` contiene el objeto JSON original recibido por USB, conservando campos, espacios, saltos de línea y escapes dentro del objeto. Cuando está firmado incluye `JsonSerialized` y `Sign`. Las lecturas USB fragmentadas se unen antes de registrarlo. Es una captura de recepción previa a la validación de firma, por lo que su presencia no significa que el pago esté aprobado.
+- `Getnet respuesta: {...}` contiene todos los campos del mensaje decodificado después de su validación, incluyendo campos adicionales del terminal. Permite extraer monto, ticket, códigos y demás datos sin limitar el registro a `ResponseMessage`.
+
+El polling **automático** no imprime cada respuesta 106 ni sus confirmaciones de recepción: se informa la conexión cuando se establece y la desconexión una sola vez mientras se reintenta. Al recuperar la comunicación se registra nuevamente la conexión. Un `ResponseMessage` de “Aprobado” en un polling no es una venta aprobada. El botón **Poll**, solicitado manualmente, sí registra la respuesta para diagnóstico. Los mensajes de otras operaciones que lleguen durante un polling se conservan.
+
 ## Controles de la interfaz
 
 | Botón | Operación |
@@ -48,7 +57,26 @@ Se reemplazó **Carga llaves** por **Último comprobante**: la librería recibid
 
 ## Resultado incierto o entrega interrumpida
 
-Un timeout o una desconexión durante el cobro no permite saber si hubo pago. La app reconecta el puerto, pero **no repite la venta ni entrega pulsos automáticamente**. Conserva el ticket y bloquea nuevas ventas incluso tras reiniciar.
+Un timeout o una desconexión durante el cobro no permite saber si hubo pago. La app reconecta el puerto y, con `AUTO_RECOVERY = True` (predeterminado), **intenta cancelar o anular automáticamente el intento**, sin repetir la venta ni entregar pulsos. Mientras confirma el resultado mantiene bloqueadas las entradas.
+
+La recuperación funciona también para intentos pendientes recuperados después de reiniciar:
+
+1. Tras conectar, se envía Getnet 116 para cancelar la operación pendiente. Se capturan respuestas finales tardías y se consulta el último comprobante.
+2. Si se confirma el rechazo/cancelación de una venta con el mismo ticket, se registra el resultado y se habilita otra selección.
+3. Si aparece una venta aprobada con el mismo ticket y monto, se solicita su anulación mediante Getnet 102 y su `OperationId`. Solo la confirmación de anulación habilita otra selección. No se envían pulsos para ese pago.
+4. Si no hay confirmación, se vuelve a consultar a intervalos de `RECOVERY_INTERVAL` (30 segundos por defecto). Cada comando de cancelación o anulación se registra antes de enviarse; no se reenvía automáticamente después de un timeout o reinicio. Una anulación sin respuesta puede confirmarse después con un comprobante 102 que coincida en ticket y monto.
+
+Un ACK de cancelación 116, un polling exitoso o un comprobante de otro ticket no demuestran que el intento original no se cobró. En esos casos se mantiene pendiente y se necesita la revisión que se describe abajo. La rutina no utiliza coincidencias solo por monto ni anula operaciones de otro ticket. La comunicación y la respuesta real de 116/102 deben validarse en el firmware del terminal: podrían exigir interacción en el POS o rechazar la anulación.
+
+Para mantener la disponibilidad de la expendedora existe una excepción operativa: si Getnet responde a 116 con código 999 y **“No hay venta en curso”**, y el último comprobante coincide con una venta anterior **completada** del registro local, se retira el bloqueo operativo. Se verifican ticket, puerto, terminal, operación, autorización, fecha contable y monto de esa venta anterior. No basta un ticket desconocido, un código 999 genérico o una coincidencia de monto.
+
+El intento queda en estado `unresolved_released`: **no está confirmado como impago ni anulado**, no entrega pulsos y requiere conciliación financiera posterior. La conexión se vuelve a abrir antes de permitir nuevas selecciones. Esta política prioriza la disponibilidad del equipo y permite que exista un cobro sin resolver; el registro no se borra ni se marca falsamente como cancelación confirmada. Para listar todos esos casos:
+
+```bash
+.venv/bin/python getnet_payments.py review
+```
+
+Después de verificar el resultado real, se pueden conciliar con `resolve` igual que los demás intentos. No se anula el comprobante anterior, que corresponde a un cliente ya atendido.
 
 También conserva el bloqueo si el pago fue aprobado pero falló la entrega de pulsos o se cortó la energía antes de registrar su finalización. No hay un sensor que confirme la cantidad físicamente entregada después de un corte: revisa la máquina antes de repetir o completar la entrega.
 
@@ -57,7 +85,7 @@ El registro está en `pagos_getnet.sqlite3`, junto a `getnet_payments.py`. No es
 1. Anota el ticket, monto y canal mostrados en el estado/log.
 2. Una vez reconectado, usa **Último comprobante** y verifica tipo de operación, ticket, monto, terminal y demás datos disponibles. Un comprobante de otra operación no demuestra que el intento pendiente no se cobró.
 3. Confirma el resultado con el terminal/Getnet. Si hubo pago, verifica la entrega y atiende o completa el servicio manualmente, sin volver a cobrar.
-4. Cierra la aplicación y registra la revisión con una nota de evidencia.
+4. Si la recuperación automática no pudo confirmar el resultado, cierra la aplicación y registra la revisión con una nota de evidencia.
 
 Consultar el registro local no envía comandos al POS:
 
@@ -89,7 +117,7 @@ Sustituye `TICKET_REAL` y la nota por los datos verificados. La resolución solo
 ## Validación antes de cambiar el equipo en servicio
 
 ```bash
-.venv/bin/python -m unittest -v test_getnet_payments test_wifi_touch
+.venv/bin/python -m unittest -v test_getnet_recovery test_getnet_payments test_wifi_touch
 ```
 
 Las pruebas simulan el transporte USB y usan el cliente Getnet real para construir y procesar mensajes firmados, incluso fragmentados. Cubren aprobación, rechazo, progreso, respuesta inválida, entradas simultáneas, registro previo al envío, desconexión, reconexión, recuperación después de reiniciar y fallo de entrega. No requieren POS ni GPIO físicos.

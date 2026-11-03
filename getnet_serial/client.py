@@ -22,7 +22,8 @@ class UncertainResult(RuntimeError):
 
 
 class POS:
-    def __init__(self, port, baudrate=115200, *, transport=None, on_message=None, on_wire=None, on_request=None):
+    def __init__(self, port, baudrate=115200, *, transport=None, on_message=None, on_wire=None, on_request=None,
+                 on_raw=None):
         if transport is None:
             import serial
 
@@ -34,7 +35,8 @@ class POS:
         self.on_message = on_message or (lambda message: None)
         self.on_wire = on_wire or (lambda message: None)
         self.on_request = on_request or (lambda message: None)
-        self._stream = JSONStream()
+        # Callback de diagnóstico: objeto JSON original, antes de verificar la firma.
+        self._stream = JSONStream(on_object=on_raw)
         self._messages = deque()
         self._lock = threading.Lock()
         self.needs_reconciliation = False
@@ -73,7 +75,7 @@ class POS:
             raise BusyError("Only one request per POS is allowed")
         sent = False
         try:
-            if self.needs_reconciliation and command not in (101, 104, 105, 106):
+            if self.needs_reconciliation and command not in (101, 104, 105, 106, 116):
                 raise UncertainResult("Reconcile the previous request before sending another operation")
             payload = {"Command": command, **fields}
             payload.setdefault("DateTime", datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"))

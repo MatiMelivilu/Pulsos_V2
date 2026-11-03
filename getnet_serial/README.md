@@ -69,6 +69,18 @@ Los callbacks reciben mensajes intermedios y respuestas ajenas/tardías; no debe
 bloquear, lanzar errores ni iniciar comandos. Solo el retorno de `sale()` es su
 resultado final. Un checksum SHA-256 comprueba integridad; no autentica al emisor.
 
+Durante una conciliación se permite también el comando 116 para cancelar una
+operación que siga esperando pago. Esto no elimina `needs_reconciliation`: un
+ACK de cancelación no prueba que una venta anterior no haya sido cobrada.
+La recuperación automática de la expendedora se documenta en [GETNET.md](../GETNET.md).
+
+Para diagnóstico, el callback opcional `on_raw(raw, outer)` recibe cada objeto
+JSON completo reensamblado: `raw` es el texto original entre llaves, sin
+reformatearlo, y `outer` el diccionario exterior. Se llama antes de verificar la
+firma; no debe usarse como prueba de aprobación. `on_wire(outer)` y
+`on_message(message)` conservan su comportamiento. La aplicación filtra del log
+las respuestas rutinarias del polling automático; consulta [GETNET.md](../GETNET.md).
+
 ## Otros comandos del SDK
 
 `request()` devuelve el objeto de respuesta sin perder campos adicionales:

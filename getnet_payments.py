@@ -8,11 +8,14 @@ from pathlib import Path
 import queue
 import sqlite3
 import threading
+import time
 
 from getnet_serial import POS, UncertainResult, new_ticket
+from getnet_serial.protocol import ProtocolError, unwrap
 
 
 OPEN_STATES = ('pending', 'uncertain', 'approved', 'dispensing', 'pulses_failed')
+REVIEW_STATES = OPEN_STATES + ('unresolved_released',)
 
 
 class PaymentJournal:
@@ -23,6 +26,10 @@ class PaymentJournal:
                 ticket TEXT PRIMARY KEY, port TEXT NOT NULL, channel INTEGER NOT NULL,
                 amount INTEGER NOT NULL, pulses INTEGER NOT NULL, created TEXT NOT NULL,
                 state TEXT NOT NULL, response TEXT, note TEXT
+            )''')
+            db.execute('''CREATE TABLE IF NOT EXISTS recovery_actions (
+                ticket TEXT NOT NULL, action TEXT NOT NULL, state TEXT NOT NULL,
+                request TEXT, response TEXT, note TEXT, PRIMARY KEY(ticket, action)
             )''')
 
     @contextmanager
@@ -72,12 +79,55 @@ class PaymentJournal:
         with self.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT state FROM payments WHERE ticket=?', (ticket,)).fetchone()
-            if row is None or row[0] not in OPEN_STATES:
+            if row is None or row[0] not in REVIEW_STATES:
                 raise ValueError('El ticket no existe o ya está resuelto.')
             if row[0] in ('approved', 'dispensing', 'pulses_failed') and outcome == 'not-paid':
                 raise ValueError('El pago fue aprobado; revisa y completa la entrega manualmente.')
             db.execute('UPDATE payments SET state=?, note=? WHERE ticket=?',
                        (outcome, note, ticket))
+
+    def recovery_action(self, ticket, action):
+        with self.connect() as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute('SELECT * FROM recovery_actions WHERE ticket=? AND action=?',
+                             (ticket, action)).fetchone()
+            return dict(row) if row else None
+
+    def known_completed_voucher(self, payment, voucher):
+        """Identifica el comprobante de una venta anterior atendida en este POS."""
+        if not isinstance(voucher, dict) or voucher.get('Ticket') == payment['ticket']:
+            return False
+        if (type(voucher.get('FunctionCode')) is not int or voucher['FunctionCode'] != 100
+                or type(voucher.get('ResponseCode')) is not int or voucher['ResponseCode'] != 0):
+            return False
+        with self.connect() as db:
+            row = db.execute('''SELECT response,amount FROM payments
+                             WHERE ticket=? AND port=? AND state='completed' AND created<?''',
+                             (voucher.get('Ticket'), payment['port'], payment['created'])).fetchone()
+        if not row or not row[0]:
+            return False
+        original = json.loads(row[0])
+        if (type(voucher.get('Amount')) is not int or voucher['Amount'] != row[1]
+                or original.get('Amount') != row[1]
+                or type(voucher.get('OperationId')) is not int or voucher['OperationId'] <= 0):
+            return False
+        identity = ('Ticket', 'TerminalId', 'OperationId', 'AuthorizationCode', 'AccountingDate')
+        return all(voucher.get(key) not in (None, '') and voucher[key] == original.get(key)
+                   for key in identity)
+
+    def begin_recovery_action(self, ticket, action, request):
+        # Persistir ANTES del comando; un reinicio no debe repetir una anulación.
+        with self.connect() as db:
+            cursor = db.execute('''INSERT OR IGNORE INTO recovery_actions
+                                (ticket,action,state,request) VALUES (?,?,'sent',?)''',
+                                (ticket, action, json.dumps(request, ensure_ascii=False)))
+            return cursor.rowcount == 1
+
+    def finish_recovery_action(self, ticket, action, state, response=None, note=None):
+        with self.connect() as db:
+            db.execute('UPDATE recovery_actions SET state=?,response=?,note=? WHERE ticket=? AND action=?',
+                       (state, json.dumps(response, ensure_ascii=False) if response is not None else None,
+                        note, ticket, action))
 
 
 class PaymentController:
@@ -85,7 +135,7 @@ class PaymentController:
 
     def __init__(self, port, baudrate, journal_path, deliver, *, on_selected=None,
                  events=None, pos_factory=POS, retry_interval=1, poll_interval=3,
-                 sale_timeout=120, print_on_pos=False):
+                 sale_timeout=120, print_on_pos=False, auto_recovery=True, recovery_interval=30):
         self.port = port
         self.baudrate = baudrate
         self.journal = PaymentJournal(journal_path)
@@ -97,12 +147,20 @@ class PaymentController:
         self.poll_interval = poll_interval
         self.sale_timeout = sale_timeout
         self.print_on_pos = print_on_pos
+        self.auto_recovery = auto_recovery
+        self.recovery_interval = recovery_interval
+        self._next_recovery = 0
+        self._recovery_notice = None
+        self._late_sale_response = None
         self.lock = threading.Lock()
         self.jobs = queue.Queue()
         self.stop_event = threading.Event()
         self.pos = None
         self.connected = False
+        self._automatic_poll = False
+        self._connection_notice = None
         self.busy = False
+        self.recovering = False
         self.blocked = self.journal.pending()
         self.thread = threading.Thread(target=self.run, daemon=True, name='GetnetPOS')
 
@@ -114,7 +172,8 @@ class PaymentController:
 
     def state(self):
         with self.lock:
-            self.emit('state', connected=self.connected, busy=self.busy, blocked=self.blocked)
+            self.emit('state', connected=self.connected, busy=self.busy, blocked=self.blocked,
+                      recovering=self.recovering)
 
     def start(self):
         self.state()
@@ -171,7 +230,7 @@ class PaymentController:
                 and type(response.get('ResponseCode')) is int and response['ResponseCode'] == 0
                 and response.get('Connected') is True)
 
-    def disconnect(self):
+    def disconnect(self, reason=None):
         with self.lock:
             self.connected = False
         pos = self.pos
@@ -181,13 +240,38 @@ class PaymentController:
             except OSError:
                 pass
         self.pos = None
+        if reason is not None and self._connection_notice is not False:
+            self.log(f'POS Getnet desconectado: {reason}. Reconectando automáticamente…')
+            self._connection_notice = False
         self.state()
+
+    def receive_raw(self, raw, outer):
+        # Preservar el JSON exactamente entre sus llaves, incluyendo JsonSerialized,
+        # Sign, espacios y saltos de línea; el polling automático no llena el log.
+        try:
+            message = unwrap(outer)
+        except ProtocolError:
+            message = outer
+        if self._automatic_poll and (message.get('FunctionCode') == 106 or 'Received' in message):
+            return
+        self.log(f'Getnet RX: {raw}')
 
     def receive_message(self, message):
         # Recibir mensajes de progreso no habilita entradas ni entrega pulsos.
-        text = message.get('MessageText') or message.get('ResponseMessage')
-        if text:
-            self.log(f'Getnet: {text}')
+        if self._automatic_poll and message.get('FunctionCode') == 106:
+            return
+        if (self.blocked and self.blocked.get('state') in ('pending', 'uncertain')
+                and message.get('FunctionCode') == 100
+                and message.get('Ticket') == self.blocked.get('ticket')):
+            self._late_sale_response = message
+        self.log('Getnet respuesta: ' + json.dumps(message, ensure_ascii=False))
+
+    def automatic_poll(self):
+        self._automatic_poll = True
+        try:
+            return self.pos.poll()
+        finally:
+            self._automatic_poll = False
 
     def run(self):
         try:
@@ -195,27 +279,36 @@ class PaymentController:
                 if self.pos is None:
                     try:
                         self.pos = self.pos_factory(self.port, baudrate=self.baudrate,
-                                                    on_message=self.receive_message)
-                        if not self.poll_ok(self.pos.poll()):
+                                                    on_message=self.receive_message,
+                                                    on_raw=self.receive_raw)
+                        response = self.automatic_poll()
+                        if not self.poll_ok(response):
                             raise OSError('Getnet no confirmó conexión en el polling.')
                         with self.lock:
                             self.connected = True
-                        self.log(f'POS Getnet conectado: {self.port}')
+                        if self._connection_notice is not True:
+                            self.log(f'POS Getnet conectado: {self.port}. '
+                                     + json.dumps(response, ensure_ascii=False))
+                            self._connection_notice = True
                         self.state()
                     except Exception as exc:
-                        self.log(f'Esperando reconexión Getnet: {exc}')
-                        self.disconnect()
+                        self.disconnect(reason=str(exc))
                         self.stop_event.wait(self.retry_interval)
+                        continue
+                if (self.auto_recovery and self.blocked
+                        and self.blocked.get('state') in ('pending', 'uncertain')
+                        and time.monotonic() >= self._next_recovery):
+                    self.recover_payment()
+                    if self.pos is None:
                         continue
                 try:
                     job = self.jobs.get(timeout=self.poll_interval)
                 except queue.Empty:
                     try:
-                        if not self.poll_ok(self.pos.poll()):
+                        if not self.poll_ok(self.automatic_poll()):
                             raise OSError('El POS dejó de responder como conectado.')
                     except Exception as exc:
-                        self.log(f'Conexión Getnet perdida: {exc}')
-                        self.disconnect()
+                        self.disconnect(reason=str(exc))
                     continue
                 try:
                     if self.stop_event.is_set():
@@ -236,7 +329,7 @@ class PaymentController:
                         self.emit('command_result', command=job[0], response=response)
                 except Exception as exc:
                     self.log(f'Error Getnet: {exc}')
-                    self.disconnect()
+                    self.disconnect(reason=str(exc))
                 finally:
                     try:
                         pending = self.journal.pending()
@@ -271,7 +364,7 @@ class PaymentController:
             self.journal.update(ticket, 'uncertain', getattr(exc, 'response', None), str(exc))
             with self.lock:
                 self.blocked = self.journal.pending()
-            self.log(f'Pago {ticket} sin resultado confirmado; revisar antes de otra venta.')
+            self.log(f'Pago {ticket} sin resultado confirmado; intentando cancelar automáticamente al reconectar.')
             raise
 
         if not approved:
@@ -300,12 +393,180 @@ class PaymentController:
             self.blocked = None
         self.log(f'Pago aprobado: CH{channel}, {pulses} pulsos entregados, ticket {ticket}')
 
+    @staticmethod
+    def matching_sale(response, payment):
+        if not isinstance(response, dict):
+            return False
+        if (type(response.get('FunctionCode')) is not int or response['FunctionCode'] != 100
+                or type(response.get('ResponseCode')) is not int
+                or response.get('Ticket') != payment['ticket']):
+            return False
+        amount = response.get('Amount')
+        if response['ResponseCode'] == 0:
+            return type(amount) is int and amount == payment['amount']
+        return amount is None or (type(amount) is int and amount in (0, payment['amount']))
+
+    @staticmethod
+    def confirmed_void(response, payment):
+        return (isinstance(response, dict)
+                and type(response.get('FunctionCode')) is int and response['FunctionCode'] == 102
+                and type(response.get('ResponseCode')) is int and response['ResponseCode'] == 0
+                and response.get('Ticket') == payment['ticket']
+                and type(response.get('Amount')) is int and response['Amount'] == payment['amount'])
+
+    def recovery_wait(self, text):
+        if text != self._recovery_notice:
+            self.log(text)
+            self._recovery_notice = text
+
+    def resolve_recovery(self, payment, state, response):
+        self.journal.update(payment['ticket'], state, response,
+                            'Resultado confirmado durante la recuperación automática.')
+        with self.lock:
+            self.blocked = None
+        self.pos.confirm_reconciled()
+        self.log(f"Pago {payment['ticket']} cancelado/anulado confirmado. POS habilitado sin enviar pulsos.")
+
+    def void_recovered_sale(self, payment, sale):
+        ticket = payment['ticket']
+        previous = self.journal.recovery_action(ticket, 'void')
+        if previous and previous['state'] == 'confirmed':
+            self.resolve_recovery(payment, 'voided', json.loads(previous['response']))
+            return
+        operation_id = sale.get('OperationId')
+        if type(operation_id) is not int or operation_id <= 0:
+            self.recovery_wait(f'Pago {ticket} cobrado sin OperationId válido; no se puede anular automáticamente.')
+            return
+        request = {'Command': 102, 'OperationId': operation_id, 'PrintOnPos': False}
+        if not self.journal.begin_recovery_action(ticket, 'void', request):
+            self.recovery_wait(f'Anulación {ticket} ya enviada sin confirmación; no se repite el comando.')
+            return
+        self.log(f'Anulando automáticamente pago {ticket}, operación {operation_id}.')
+        try:
+            result = self.pos.request(102, OperationId=operation_id, PrintOnPos=False, timeout=30)
+            confirmed = (type(result.get('FunctionCode')) is int and result['FunctionCode'] == 102
+                         and type(result.get('ResponseCode')) is int and result['ResponseCode'] == 0
+                         and result.get('Ticket') in (None, '', ticket)
+                         and (result.get('Amount') is None or
+                              (type(result.get('Amount')) is int
+                               and result['Amount'] in (0, payment['amount']))))
+            self.journal.finish_recovery_action(ticket, 'void', 'confirmed' if confirmed else 'failed', result)
+        except Exception as exc:
+            self.journal.finish_recovery_action(ticket, 'void', 'uncertain',
+                                                 getattr(exc, 'response', None), str(exc))
+            raise
+        if confirmed:
+            self.resolve_recovery(payment, 'voided', result)
+        else:
+            self.recovery_wait(f'El POS no confirmó la anulación de {ticket}; se mantiene pendiente.')
+
+    def apply_recovery_evidence(self, payment, response):
+        if self.matching_sale(response, payment):
+            if response['ResponseCode'] == 0:
+                self.void_recovered_sale(payment, response)
+            else:
+                self.resolve_recovery(payment, 'cancelled', response)
+            return True
+        if self.confirmed_void(response, payment):
+            self.resolve_recovery(payment, 'voided', response)
+            return True
+        return False
+
+    def release_idle_terminal(self, payment, voucher):
+        action = self.journal.recovery_action(payment['ticket'], 'cancel')
+        if not action or not action['response']:
+            return False
+        cancellation = json.loads(action['response'])
+        if (type(cancellation.get('FunctionCode')) is not int or cancellation['FunctionCode'] != 116
+                or type(cancellation.get('ResponseCode')) is not int or cancellation['ResponseCode'] != 999
+                or 'no hay venta en curso' not in str(cancellation.get('ResponseMessage', '')).casefold()
+                or not self.journal.known_completed_voucher(payment, voucher)):
+            return False
+        # Política de disponibilidad de la expendedora: liberar el bloqueo operativo
+        # sin afirmar que el intento no fue cobrado. La incertidumbre queda persistida.
+        self.journal.update(payment['ticket'], 'unresolved_released', {
+            'Cancellation': cancellation, 'LastVoucher': voucher,
+        }, 'POS sin venta en curso y último comprobante de una venta anterior completada. '
+           'Bloqueo operativo liberado; resultado financiero todavía incierto, requiere conciliación.')
+        with self.lock:
+            self.blocked = None
+        self.log(f"Pago {payment['ticket']}: POS sin venta en curso y comprobante anterior verificado. "
+                 'Bloqueo operativo liberado SIN pulsos; pago conservado como incierto para conciliación.')
+        # Abrir una sesión limpia antes de habilitar otra selección. No se declara
+        # confirm_reconciled(), porque no se ha confirmado el resultado financiero.
+        self.disconnect()
+        return True
+
+    def recover_payment(self):
+        with self.lock:
+            if self.busy or self.stop_event.is_set():
+                return
+            self.busy = True
+            self.recovering = True
+        self.state()
+        self._next_recovery = time.monotonic() + self.recovery_interval
+        try:
+            payment = self.journal.pending()
+            if not payment or payment['state'] not in ('pending', 'uncertain'):
+                return
+            if payment['port'] != self.port:
+                self.recovery_wait('Recuperación pendiente: conecta el mismo POS y puerto del intento original.')
+                return
+            self.recovery_wait(f"Recuperando automáticamente pago {payment['ticket']}: consultando/cancelando en el POS.")
+            action = self.journal.recovery_action(payment['ticket'], 'void')
+            if action and action['state'] == 'confirmed':
+                self.resolve_recovery(payment, 'voided', json.loads(action['response']))
+                return
+            if action:
+                # Tras una anulación sin respuesta, consultar antes de considerar
+                # evidencia vieja de aprobación. Nunca reenviar la anulación.
+                voucher = self.pos.last_voucher(timeout=15)
+                self.apply_recovery_evidence(payment, voucher)
+                return
+            if self.apply_recovery_evidence(payment, self._late_sale_response):
+                return
+            if self.journal.begin_recovery_action(payment['ticket'], 'cancel', {'Command': 116}):
+                self.log(f"Cancelando automáticamente operación pendiente {payment['ticket']} (Getnet 116).")
+                try:
+                    response = self.pos.cancel_sale(timeout=15)
+                    ok = (type(response.get('FunctionCode')) is int and response['FunctionCode'] == 116
+                          and type(response.get('ResponseCode')) is int and response['ResponseCode'] == 0)
+                    self.journal.finish_recovery_action(payment['ticket'], 'cancel',
+                                                         'confirmed' if ok else 'failed', response)
+                except Exception as exc:
+                    self.journal.finish_recovery_action(payment['ticket'], 'cancel', 'uncertain',
+                                                         getattr(exc, 'response', None), str(exc))
+                    raise
+                if self.apply_recovery_evidence(payment, self._late_sale_response):
+                    return
+            voucher = self.pos.last_voucher(timeout=15)
+            if self.apply_recovery_evidence(payment, voucher):
+                return
+            if self.release_idle_terminal(payment, voucher):
+                return
+            self.recovery_wait(f"Pago {payment['ticket']}: cancelación solicitada, pero falta confirmar "
+                               'el resultado de ese ticket. Otro comprobante no confirma ausencia de cobro.')
+        except Exception as exc:
+            self.recovery_wait(f'Recuperación automática sin confirmar: {exc}')
+            self.disconnect(reason=str(exc))
+        finally:
+            try:
+                pending = self.journal.pending()
+            except sqlite3.Error:
+                pending = {'ticket': 'registro inaccesible', 'state': 'uncertain'}
+            with self.lock:
+                self.blocked = pending
+                self.busy = False
+                self.recovering = False
+            self.state()
+
 
 def main():
     parser = argparse.ArgumentParser(description='Consultar o resolver el registro local de pagos de la app.')
     parser.add_argument('--journal', default=str(Path(__file__).with_name('pagos_getnet.sqlite3')))
     commands = parser.add_subparsers(dest='command', required=True)
     commands.add_parser('history')
+    commands.add_parser('review', help='Listar resultados financieros inciertos liberados operativamente')
     resolve = commands.add_parser('resolve')
     resolve.add_argument('--ticket', required=True)
     resolve.add_argument('--outcome', choices=('not-paid', 'served-manually'), required=True)
@@ -318,7 +579,9 @@ def main():
     else:
         with journal.connect() as db:
             db.row_factory = sqlite3.Row
-            for row in db.execute('SELECT * FROM payments ORDER BY created DESC LIMIT 50'):
+            query = ("SELECT * FROM payments WHERE state='unresolved_released' ORDER BY created"
+                     if args.command == 'review' else 'SELECT * FROM payments ORDER BY created DESC LIMIT 50')
+            for row in db.execute(query):
                 print(json.dumps(dict(row), ensure_ascii=False))
 
 

@@ -23,6 +23,7 @@ Pulsos_V2/
 ├── valores.txt
 ├── requirements.txt
 ├── test_wifi_touch.py         # Opcional: pruebas sin hardware
+├── test_getnet_recovery.py   # Opcional: recuperación y anulaciones simuladas
 └── test_getnet_payments.py    # Opcional: pruebas sin hardware
 ```
 
@@ -144,7 +145,7 @@ Desde una terminal del escritorio de la Raspberry:
 ```bash
 cd ~/Pulsos_V2
 .venv/bin/python -c "import tkinter, serial, PIL, gpiozero, lgpio; print('Dependencias OK')"
-.venv/bin/python -m unittest -v test_getnet_payments test_wifi_touch
+.venv/bin/python -m unittest -v test_getnet_recovery test_getnet_payments test_wifi_touch
 .venv/bin/python interfaz_pulsos_optoacoplada.py
 ```
 
