@@ -165,7 +165,7 @@ class POS:
     def poll(self, timeout=10):
         return self.request(106, timeout=timeout)
 
-    def sale(self, amount, ticket=None, *, print_on_pos=False, sale_type=0,
+    def sale(self, amount, ticket=None, *, print_on_pos=False, sale_type=1,
              send_message=True, employee_id=1, timeout=120):
         if type(amount) is not int or not 0 < amount <= 9007199254740991:
             raise ValueError("Amount must be a positive integer in pesos, within the JS safe integer range")

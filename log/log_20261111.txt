@@ -1,0 +1,167 @@
+[2026-11-11 09:37:27] Valores cargados correctamente.
+[2026-11-11 09:37:27] configurando GPIO
+[2026-11-11 09:37:28] POS Getnet conectado: /dev/ttyACM0. {"Connected": true, "FunctionCode": 106, "ResponseCode": 0, "ResponseMessage": "Aprobado"}
+[2026-11-11 09:37:37] Venta Getnet CH1: $30000, 1 pulsos, ticket AA30B13E2E
+[2026-11-11 09:37:37] Getnet RX: {"Received":true}
+[2026-11-11 09:37:39] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:37:39] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:37:56] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:38:06\",\"AID\":\"\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"09\",\"ExpiryDate\":\"\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:38:06\",\"ResponseCode\":1006,\"ResponseMessage\":\"Operacion Cancelada\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111093803\"}","Sign":"C82143491F197092A27DB3F8857FB91ABF6E7891E95066A730817CE226AAC8A0"}
+[2026-11-11 09:37:56] Getnet respuesta: {"AccountingDate": "2026-11-11 09:38:06", "AID": "", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "09", "ExpiryDate": "", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:38:06", "ResponseCode": 1006, "ResponseMessage": "Operacion Cancelada", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111093803"}
+[2026-11-11 09:37:56] Pago rechazado/cancelado: Operacion Cancelada
+[2026-11-11 09:39:13] Venta Getnet CH1: $30000, 1 pulsos, ticket A45FD9A11A
+[2026-11-11 09:39:13] Getnet RX: {"Received":true}
+[2026-11-11 09:39:14] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:39:14] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:39:18] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":80,\\\"MessageText\\\":\\\"Selección de cuota\\\"}\"","Sign":"FC2FD8D598EAFB085FF250665A17DD4CC3F8BA62D06EFB1A0D72CC37D6067506"}
+[2026-11-11 09:39:18] Getnet respuesta: {"MessageCode": 80, "MessageText": "Selección de cuota"}
+[2026-11-11 09:39:26] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":81,\\\"MessageText\\\":\\\"Entrada de PIN\\\"}\"","Sign":"431EE950FB09E7D6C950303B5901F6672EF388528D23C8A44B596AB28332E556"}
+[2026-11-11 09:39:26] Getnet respuesta: {"MessageCode": 81, "MessageText": "Entrada de PIN"}
+[2026-11-11 09:39:31] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 09:39:31] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 09:39:33] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:39:32\",\"AID\":\"A0000000041010\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"14\",\"ExpiryDate\":\"3007\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:39:32\",\"ResponseCode\":91,\"ResponseMessage\":\"Timeout con emisor\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111093932\"}","Sign":"94F29DC6DB95ADCB019A4B2D54EF8362BD26A0FEC051CFE3634DB7DFD0F5EC3B"}
+[2026-11-11 09:39:33] Getnet respuesta: {"AccountingDate": "2026-11-11 09:39:32", "AID": "A0000000041010", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "14", "ExpiryDate": "3007", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:39:32", "ResponseCode": 91, "ResponseMessage": "Timeout con emisor", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111093932"}
+[2026-11-11 09:39:33] Pago rechazado/cancelado: Timeout con emisor
+[2026-11-11 09:39:46] Venta Getnet CH2: $200, 2 pulsos, ticket EABD630AF6
+[2026-11-11 09:39:46] Getnet RX: {"Received":true}
+[2026-11-11 09:39:47] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:39:47] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:39:55] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 09:39:55] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 09:39:56] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:39:55\",\"AID\":\"A0000000041010\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"16\",\"ExpiryDate\":\"3007\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:39:55\",\"ResponseCode\":91,\"ResponseMessage\":\"Timeout con emisor\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111093955\"}","Sign":"8D70631688C0DAAA6D3908F0EE20A25426868A16965322CEB400939680771C47"}
+[2026-11-11 09:39:56] Getnet respuesta: {"AccountingDate": "2026-11-11 09:39:55", "AID": "A0000000041010", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "16", "ExpiryDate": "3007", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:39:55", "ResponseCode": 91, "ResponseMessage": "Timeout con emisor", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111093955"}
+[2026-11-11 09:39:56] Pago rechazado/cancelado: Timeout con emisor
+[2026-11-11 09:40:45] POS Getnet desconectado: POS outcome is uncertain; do not resend automatically. write failed: [Errno 5] Input/output error. Reconectando automáticamente…
+[2026-11-11 09:41:47] POS Getnet conectado: /dev/ttyACM0. {"Connected": true, "FunctionCode": 106, "ResponseCode": 0, "ResponseMessage": "Aprobado"}
+[2026-11-11 09:41:51] Getnet RX: {"Received":true}
+[2026-11-11 09:41:57] Getnet RX: {"JsonSerialized":"{\"CommerceCode\":14746,\"FunctionCode\":103,\"ResponseCode\":0,\"ResponseMessage\":\"Aprobado\",\"Success\":true,\"TerminalId\":\"80000685\"}","Sign":"97567C362DAB88355DE02446DE5993C1697380E9A1EC3719AB706FFF756F14ED"}
+[2026-11-11 09:41:57] Getnet respuesta: {"CommerceCode": 14746, "FunctionCode": 103, "ResponseCode": 0, "ResponseMessage": "Aprobado", "Success": true, "TerminalId": "80000685"}
+Getnet close: {
+  "CommerceCode": 14746,
+  "FunctionCode": 103,
+  "ResponseCode": 0,
+  "ResponseMessage": "Aprobado",
+  "Success": true,
+  "TerminalId": "80000685"
+}
+[2026-11-11 09:42:14] Venta Getnet CH2: $200, 2 pulsos, ticket 39C92F8AA5
+[2026-11-11 09:42:14] Getnet RX: {"Received":true}
+[2026-11-11 09:42:15] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:42:15] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:42:19] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 09:42:19] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 09:42:21] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:42:20\",\"AID\":\"A0000000041010\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"16\",\"ExpiryDate\":\"3007\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:42:20\",\"ResponseCode\":91,\"ResponseMessage\":\"Timeout con emisor\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111094220\"}","Sign":"1086FC7E022DE3FC08CFF4C5B90FCECDCCE7A752623259BC898E1A7E87D9227F"}
+[2026-11-11 09:42:21] Getnet respuesta: {"AccountingDate": "2026-11-11 09:42:20", "AID": "A0000000041010", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "16", "ExpiryDate": "3007", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:42:20", "ResponseCode": 91, "ResponseMessage": "Timeout con emisor", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111094220"}
+[2026-11-11 09:42:21] Pago rechazado/cancelado: Timeout con emisor
+[2026-11-11 09:42:29] Venta Getnet CH2: $200, 2 pulsos, ticket 1F0F2C30B2
+[2026-11-11 09:42:29] Getnet RX: {"Received":true}
+[2026-11-11 09:42:30] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:42:30] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:42:40] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":81,\\\"MessageText\\\":\\\"Entrada de PIN\\\"}\"","Sign":"431EE950FB09E7D6C950303B5901F6672EF388528D23C8A44B596AB28332E556"}
+[2026-11-11 09:42:40] Getnet respuesta: {"MessageCode": 81, "MessageText": "Entrada de PIN"}
+[2026-11-11 09:42:45] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 09:42:45] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 09:42:48] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:42:46\",\"AID\":\"A0000000041010\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"14\",\"ExpiryDate\":\"2808\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:42:46\",\"ResponseCode\":91,\"ResponseMessage\":\"Timeout con emisor\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111094246\"}","Sign":"48814B43D4D4E3E1E515CE5F6FBF3F82B364C3D0A1A6C5F6D0DB0C5E6D15C051"}
+[2026-11-11 09:42:48] Getnet respuesta: {"AccountingDate": "2026-11-11 09:42:46", "AID": "A0000000041010", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "14", "ExpiryDate": "2808", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:42:46", "ResponseCode": 91, "ResponseMessage": "Timeout con emisor", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111094246"}
+[2026-11-11 09:42:48] Pago rechazado/cancelado: Timeout con emisor
+[2026-11-11 09:42:55] Getnet RX: {"Received":true}
+[2026-11-11 09:42:56] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"1970-01-01 00:00:00\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"CashBack\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"ExpiryDate\":\"\",\"FunctionCode\":102,\"IssuerId\":\"\",\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:42:54\",\"ResponseCode\":99,\"ResponseMessage\":\"No hay transacciones\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"\"}","Sign":"FB0BDE3A65417D6CEC3E63C08C9B9FDA0DE262A64E44B470126981AC0C1317B1"}
+[2026-11-11 09:42:56] Getnet respuesta: {"AccountingDate": "1970-01-01 00:00:00", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "CashBack": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "ExpiryDate": "", "FunctionCode": 102, "IssuerId": "", "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:42:54", "ResponseCode": 99, "ResponseMessage": "No hay transacciones", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": ""}
+Getnet last: {
+  "AccountingDate": "1970-01-01 00:00:00",
+  "Amount": 0,
+  "AuthorizationCode": "",
+  "BranchAddress": "Urmeneta  660",
+  "BranchDistrict": "SAN BERNARDO",
+  "BranchName": "Ideas Digitales SPA",
+  "CardBrand": "",
+  "CardType": "",
+  "CashBack": 0,
+  "CommerceCode": 0,
+  "CommerceName": "Richard Quirola",
+  "CommerceRut": "76494819-K",
+  "ExpiryDate": "",
+  "FunctionCode": 102,
+  "IssuerId": "",
+  "Last4Digits": "",
+  "OperationId": 0,
+  "PosMode": 0,
+  "RealDate": "2026-11-11 09:42:54",
+  "ResponseCode": 99,
+  "ResponseMessage": "No hay transacciones",
+  "SaleType": 0,
+  "SharesNumber": 0,
+  "TerminalId": "",
+  "TransToken": ""
+}
+[2026-11-11 09:45:47] Venta Getnet CH1: $30000, 1 pulsos, ticket E64CB2BF4C
+[2026-11-11 09:45:47] Getnet RX: {"Received":true}
+[2026-11-11 09:45:48] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:45:48] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:45:58] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:45:56\",\"AID\":\"\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"09\",\"ExpiryDate\":\"\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:45:56\",\"ResponseCode\":1006,\"ResponseMessage\":\"Operacion Cancelada\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111094553\"}","Sign":"3F18C0AF6D2E27090474383B8CB8B1B043C5EE8AB879A6694D4AFEDA212F3DFF"}
+[2026-11-11 09:45:58] Getnet respuesta: {"AccountingDate": "2026-11-11 09:45:56", "AID": "", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "09", "ExpiryDate": "", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:45:56", "ResponseCode": 1006, "ResponseMessage": "Operacion Cancelada", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111094553"}
+[2026-11-11 09:45:58] Pago rechazado/cancelado: Operacion Cancelada
+[2026-11-11 09:46:05] Getnet RX: {"Received":true}
+[2026-11-11 09:46:05] Getnet RX: {"JsonSerialized":"{\"Connected\":true,\"FunctionCode\":106,\"ResponseCode\":0,\"ResponseMessage\":\"Aprobado\"}","Sign":"23F333FE0562239528AF82922D548B451966C7819F5F7D1D012FC5B0763CB928"}
+[2026-11-11 09:46:05] Getnet respuesta: {"Connected": true, "FunctionCode": 106, "ResponseCode": 0, "ResponseMessage": "Aprobado"}
+Getnet poll: {
+  "Connected": true,
+  "FunctionCode": 106,
+  "ResponseCode": 0,
+  "ResponseMessage": "Aprobado"
+}
+[2026-11-11 09:46:10] Venta Getnet CH2: $200, 2 pulsos, ticket 6E7BCCF89F
+[2026-11-11 09:46:10] Getnet RX: {"Received":true}
+[2026-11-11 09:46:11] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:46:11] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:46:16] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 09:46:16] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 09:46:17] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:46:16\",\"AID\":\"A0000000041010\",\"Amount\":0,\"AuthorizationCode\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"16\",\"ExpiryDate\":\"3007\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:46:16\",\"ResponseCode\":91,\"ResponseMessage\":\"Timeout con emisor\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147461320261111094616\"}","Sign":"F7AFB1EDC36C82B66EC21C1181A7D6484DEEEA55A972354EB5453AC9A4523B8B"}
+[2026-11-11 09:46:17] Getnet respuesta: {"AccountingDate": "2026-11-11 09:46:16", "AID": "A0000000041010", "Amount": 0, "AuthorizationCode": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "16", "ExpiryDate": "3007", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:46:16", "ResponseCode": 91, "ResponseMessage": "Timeout con emisor", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147461320261111094616"}
+[2026-11-11 09:46:17] Pago rechazado/cancelado: Timeout con emisor
+[2026-11-11 09:47:06] POS Getnet desconectado: POS outcome is uncertain; do not resend automatically. Timed out waiting for POS receipt confirmation. Reconectando automáticamente…
+[2026-11-11 09:48:30] POS Getnet conectado: /dev/ttyACM0. {"Connected": true, "FunctionCode": 106, "ResponseCode": 0, "ResponseMessage": "Aprobado"}
+[2026-11-11 09:49:22] Venta Getnet CH2: $200, 2 pulsos, ticket A062820573
+[2026-11-11 09:49:22] Getnet RX: {"Received":true}
+[2026-11-11 09:49:24] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 09:49:24] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 09:49:30] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":81,\\\"MessageText\\\":\\\"Entrada de PIN\\\"}\"","Sign":"431EE950FB09E7D6C950303B5901F6672EF388528D23C8A44B596AB28332E556"}
+[2026-11-11 09:49:30] Getnet respuesta: {"MessageCode": 81, "MessageText": "Entrada de PIN"}
+[2026-11-11 09:49:37] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 09:49:37] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 09:49:38] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 09:49:37\",\"AID\":\"A0000000041010\",\"Amount\":0,\"AuthorizationCode\":\"\",\"Bin\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"14\",\"ExpiryDate\":\"2808\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 09:49:37\",\"ResponseCode\":91,\"ResponseMessage\":\"Timeout con emisor\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147464720261111094937\"}","Sign":"4E53094947899782FF7995B3B4206EA6820644ADCD19199BF36211E1A43C6A66"}
+[2026-11-11 09:49:38] Getnet respuesta: {"AccountingDate": "2026-11-11 09:49:37", "AID": "A0000000041010", "Amount": 0, "AuthorizationCode": "", "Bin": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "14", "ExpiryDate": "2808", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 09:49:37", "ResponseCode": 91, "ResponseMessage": "Timeout con emisor", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147464720261111094937"}
+[2026-11-11 09:49:38] Pago rechazado/cancelado: Timeout con emisor
+[2026-11-11 10:08:11] Valores cargados correctamente.
+[2026-11-11 10:08:12] configurando GPIO
+[2026-11-11 10:08:12] POS Getnet conectado: /dev/ttyACM0. {"Connected": true, "FunctionCode": 106, "ResponseCode": 0, "ResponseMessage": "Aprobado"}
+[2026-11-11 10:08:17] Venta Getnet CH1: $30000, 1 pulsos, ticket 7D97F73DAF
+[2026-11-11 10:08:17] Getnet RX: {"Received":true}
+[2026-11-11 10:08:19] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 10:08:19] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 10:08:25] Getnet RX: {"JsonSerialized":"{\"AccountingDate\":\"2026-11-11 10:08:24\",\"AID\":\"\",\"Amount\":0,\"AuthorizationCode\":\"\",\"Bin\":\"\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"\",\"CardType\":\"\",\"Cashback\":0,\"CommerceCode\":0,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EntryMode\":\"09\",\"ExpiryDate\":\"\",\"FunctionCode\":100,\"Last4Digits\":\"\",\"OperationId\":0,\"PosMode\":0,\"RealDate\":\"2026-11-11 10:08:24\",\"ResponseCode\":1006,\"ResponseMessage\":\"Operacion Cancelada\",\"SaleType\":0,\"SharesNumber\":0,\"TerminalId\":\"\",\"TransToken\":\"80000685147464720261111100820\"}","Sign":"155A2094FA0A288CE71E9B279D5F400A6CF0299D20FEEE6EF0968435F2750B14"}
+[2026-11-11 10:08:25] Getnet respuesta: {"AccountingDate": "2026-11-11 10:08:24", "AID": "", "Amount": 0, "AuthorizationCode": "", "Bin": "", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "", "CardType": "", "Cashback": 0, "CommerceCode": 0, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EntryMode": "09", "ExpiryDate": "", "FunctionCode": 100, "Last4Digits": "", "OperationId": 0, "PosMode": 0, "RealDate": "2026-11-11 10:08:24", "ResponseCode": 1006, "ResponseMessage": "Operacion Cancelada", "SaleType": 0, "SharesNumber": 0, "TerminalId": "", "TransToken": "80000685147464720261111100820"}
+[2026-11-11 10:08:25] Pago rechazado/cancelado: Operacion Cancelada
+[2026-11-11 10:08:28] Venta Getnet CH2: $200, 2 pulsos, ticket 91BBCDED83
+[2026-11-11 10:08:28] Getnet RX: {"Received":true}
+[2026-11-11 10:08:29] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 10:08:29] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 10:08:32] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":81,\\\"MessageText\\\":\\\"Entrada de PIN\\\"}\"","Sign":"431EE950FB09E7D6C950303B5901F6672EF388528D23C8A44B596AB28332E556"}
+[2026-11-11 10:08:32] Getnet respuesta: {"MessageCode": 81, "MessageText": "Entrada de PIN"}
+[2026-11-11 10:08:37] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 10:08:37] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 10:08:39] Getnet RX: {"JsonSerialized":"{\"AccountNumber\":\"\",\"AccountingDate\":\"2026-11-11 10:08:37\",\"AID\":\"A0000000041010\",\"Amount\":200,\"AuthorizationCode\":\"205411\",\"Bin\":\"53318700\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"MC\",\"CardType\":\"DB\",\"Cashback\":0,\"CommerceCode\":14746,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EmployeeId\":1,\"EntryMode\":\"14\",\"ExpiryDate\":\"2808\",\"FunctionCode\":100,\"Last4Digits\":\"7360\",\"OperationId\":47,\"PosMode\":1,\"RealDate\":\"2026-11-11 10:08:37\",\"ResponseCode\":0,\"ResponseMessage\":\"Aprobado\",\"SaleType\":0,\"SharesAmount\":0,\"SharesNumber\":0,\"TerminalId\":\"80000685\",\"Ticket\":\"91BBCDED83\",\"Tip\":0,\"TransToken\":\"80000685147464720261111100837\"}","Sign":"74E4CEA38C94071CDF9223A7014F16896FFD35142FBB61491C44BE632EED7BBC"}
+[2026-11-11 10:08:39] Getnet respuesta: {"AccountNumber": "", "AccountingDate": "2026-11-11 10:08:37", "AID": "A0000000041010", "Amount": 200, "AuthorizationCode": "205411", "Bin": "53318700", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "MC", "CardType": "DB", "Cashback": 0, "CommerceCode": 14746, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EmployeeId": 1, "EntryMode": "14", "ExpiryDate": "2808", "FunctionCode": 100, "Last4Digits": "7360", "OperationId": 47, "PosMode": 1, "RealDate": "2026-11-11 10:08:37", "ResponseCode": 0, "ResponseMessage": "Aprobado", "SaleType": 0, "SharesAmount": 0, "SharesNumber": 0, "TerminalId": "80000685", "Ticket": "91BBCDED83", "Tip": 0, "TransToken": "80000685147464720261111100837"}
+[2026-11-11 10:08:39] Pago aprobado: CH2, 2 pulsos entregados, ticket 91BBCDED83
+[2026-11-11 10:16:55] Valores cargados correctamente.
+[2026-11-11 10:16:55] configurando GPIO
+[2026-11-11 10:16:57] POS Getnet conectado: /dev/ttyACM0. {"Connected": true, "FunctionCode": 106, "ResponseCode": 0, "ResponseMessage": "Aprobado"}
+[2026-11-11 10:17:03] Venta Getnet CH2: $200, 2 pulsos, ticket 16F4B41BC0
+[2026-11-11 10:17:03] Getnet RX: {"Received":true}
+[2026-11-11 10:17:04] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":78,\\\"MessageText\\\":\\\"Lectura de tarjetas\\\"}\"","Sign":"2D900FB89F22A730406BD2AC646CE2F87CEF4B39FA97F6297D374EEA7D207B32"}
+[2026-11-11 10:17:04] Getnet respuesta: {"MessageCode": 78, "MessageText": "Lectura de tarjetas"}
+[2026-11-11 10:17:07] Getnet RX: {"JsonSerialized":"\"{\\\"MessageCode\\\":82,\\\"MessageText\\\":\\\"Enviando transacción a Getnet\\\"}\"","Sign":"AC5F2C2D272BE3BFE3F1497B2D240CAECF14FCCE5C8AD555CC83E00CB80DC9C3"}
+[2026-11-11 10:17:07] Getnet respuesta: {"MessageCode": 82, "MessageText": "Enviando transacción a Getnet"}
+[2026-11-11 10:17:09] Getnet RX: {"JsonSerialized":"{\"AccountNumber\":\"\",\"AccountingDate\":\"2026-11-11 10:17:08\",\"AID\":\"A0000000041010\",\"Amount\":200,\"AuthorizationCode\":\"634833\",\"Bin\":\"54874250\",\"BranchAddress\":\"Urmeneta  660\",\"BranchDistrict\":\"SAN BERNARDO\",\"BranchName\":\"Ideas Digitales SPA\",\"CardBrand\":\"MC\",\"CardType\":\"CR\",\"Cashback\":0,\"CommerceCode\":14746,\"CommerceName\":\"Richard Quirola\",\"CommerceRut\":\"76494819-K\",\"EmployeeId\":1,\"EntryMode\":\"16\",\"ExpiryDate\":\"3007\",\"FunctionCode\":100,\"Last4Digits\":\"9522\",\"OperationId\":48,\"PosMode\":1,\"RealDate\":\"2026-11-11 10:17:08\",\"ResponseCode\":0,\"ResponseMessage\":\"Aprobado\",\"SaleType\":1,\"SharesAmount\":0,\"SharesNumber\":0,\"TerminalId\":\"80000685\",\"Ticket\":\"16F4B41BC0\",\"Tip\":0,\"TransToken\":\"80000685147464820261111101708\"}","Sign":"BE4B3240D2D1CF3D6B49FB360ADF9BEF7A2B603D0F71EB50F2CCCA06758D9FC3"}
+[2026-11-11 10:17:09] Getnet respuesta: {"AccountNumber": "", "AccountingDate": "2026-11-11 10:17:08", "AID": "A0000000041010", "Amount": 200, "AuthorizationCode": "634833", "Bin": "54874250", "BranchAddress": "Urmeneta  660", "BranchDistrict": "SAN BERNARDO", "BranchName": "Ideas Digitales SPA", "CardBrand": "MC", "CardType": "CR", "Cashback": 0, "CommerceCode": 14746, "CommerceName": "Richard Quirola", "CommerceRut": "76494819-K", "EmployeeId": 1, "EntryMode": "16", "ExpiryDate": "3007", "FunctionCode": 100, "Last4Digits": "9522", "OperationId": 48, "PosMode": 1, "RealDate": "2026-11-11 10:17:08", "ResponseCode": 0, "ResponseMessage": "Aprobado", "SaleType": 1, "SharesAmount": 0, "SharesNumber": 0, "TerminalId": "80000685", "Ticket": "16F4B41BC0", "Tip": 0, "TransToken": "80000685147464820261111101708"}
+[2026-11-11 10:17:10] Pago aprobado: CH2, 2 pulsos entregados, ticket 16F4B41BC0
+[2026-11-12 03:22:39] POS Getnet desconectado: POS outcome is uncertain; do not resend automatically. write failed: [Errno 5] Input/output error. Reconectando automáticamente…
