@@ -125,17 +125,17 @@ class App(tk.Tk):
         self.inCH4 = Button(17, bounce_time=0.05)
         
         self.outCH1 = LED(19, pin_factory=factory)
-        self.outCH1.on()
+        self.outCH1.off()
         self.outCH2 = LED(26, pin_factory=factory)
-        self.outCH2.on()
+        self.outCH2.off()
         self.outCH3 = LED(20, pin_factory=factory)
-        self.outCH3.on()
+        self.outCH3.off()
         self.outCH4 = LED(21, pin_factory=factory)
-        self.outCH4.on()  
+        self.outCH4.off()  
         
         self.outs = [self.outCH1, self.outCH2, self.outCH3, self.outCH4]  
         
-        self.pulseChannel = LED(16, pin_factory=factory)
+        self.pulseChannel = LED(7, pin_factory=factory)
         self.pulseChannel.off()
                 
     def deshabilitar_botones(self):
@@ -294,12 +294,10 @@ class App(tk.Tk):
             self.log("POS no disponible: hay una operación en curso o pendiente de revisión.")
 
     def test_channel(self, channel):
-        if not self.controller.submit_test(lambda: self.toggle_gpio(self.outs[channel - 1])):
-            self.log("Prueba GPIO no disponible mientras el POS está ocupado o desconectado.")
+        self.toggle_gpio(self.outs[channel - 1])
 
     def test_pulso_acoplado(self):
-        if not self.controller.submit_test(lambda: self.enviar_pulso_acoplado(1)):
-            self.log("Prueba de pulsos no disponible mientras hay un pago pendiente.")
+        self.enviar_pulso_acoplado(1)
 
     def open_wifi_settings(self):
         """Muestra las redes cercanas y permite conectarse desde la pantalla táctil."""
